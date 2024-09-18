@@ -1,0 +1,95 @@
+/* General styles for all screens */
+body {
+    font-family: Arial, sans-serif;
+    background-image: url("University.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+  h2 {
+    text-align: center;
+  }
+  
+  .role-selection-container, .login-container {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    text-align: center;
+  }
+
+  .teacher-student-container {
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    width: 85%;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+  }
+
+  .team-container {
+    background-color: rgb(255, 255, 255);
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    width: 30%;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+  }
+  
+  .role-button1 {
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    background-color: #AA5A19;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .button1 {
+    width: 25%;
+    padding: 15px;
+    margin: 10px 0;
+    background-color: #AA5A19;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .button2 {
+    width: 12%;
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #AA5A19;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .role-button1:hover, .role-button2:hover {
+    background-color: #1f1813;
+  }
+
+  header {
+    background-color: #AA5A19;
+    color: white;
+    font-size: xx-large;
+    padding: 20px;
+    width: 100%;
+    top: 0;
+    left: 0;
+    position: fixed;
+  }
