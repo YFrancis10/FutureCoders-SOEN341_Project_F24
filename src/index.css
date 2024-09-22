@@ -1,0 +1,49 @@
+/* General styles for all screens */
+body {
+  font-family: Arial, sans-serif;
+  background-image: url("./assets/University.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center; /* Horizontal centering */
+  align-items: center;     /* Vertical centering */
+  background-attachment: fixed; /* Keep background fixed */
+}
+
+.role-selection-container {
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  width: 350px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.LargeButton {
+  width: 100%;
+  padding: 15px;
+  margin: 10px 0;
+  background-color: #AA5A19;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: medium;
+}
+
+.LargeButton:hover {
+  width: 100%;
+  padding: 15px;
+  margin: 10px 0;
+  background-color: #ee7e23;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size:medium;
+}
