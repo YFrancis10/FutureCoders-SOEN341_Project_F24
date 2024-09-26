@@ -1,0 +1,5 @@
+FirstName,LastName,Email,Role,HashedPassword
+fouad,hi,fouad@example.com,student,$2b$10$xmwnxmW.TwtxSHPN2FKiq.C/PIK.MMDkGUX9yLD1Y2Y5Yju0OfK1e
+Rami,N,rami@example.com,student,$2b$10$SNbxNZBD/hPq8ugHonzJCO1aPaGzUzXTPZ/uk7DMn2j7gmy7g.cpK
+Youssef,F,youssef@example.com,student,$2b$10$ukfHjoee/QlCQxXS.j4gTupNWDYg1h4E5OJ0YaHOjzV9AvX2n7irq
+Nicolas,L,nicolas@example.com,student,$2b$10$DcBfjsvECOsSg0qAE6hTU.AS7bBj2sNhcfKzHiXrOhyHMI4cl8fBe
