@@ -39,33 +39,42 @@ const readUsersFromCSV = () => {
 
 // Route to handle sign-up requests
 app.post('/sign-up', async (req, res) => {
-  const { firstName, lastName, email, password, role } = req.body;
-
-  // Log that the route was hit
-  console.log('Received POST request at /sign-up');
-
-  // Check if all required fields are present
-  if (!firstName || !lastName || !email || !password || !role) {
-    console.log('Missing required fields:', { firstName, lastName, email, password, role });
-    return res.status(400).json({ success: false, message: 'All fields are required.' });
-  }
-
-  try {
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-    console.log('Password hashed successfully');
-
-    // Write the user data to the existing 'users.csv' file
-    await csvWriter.writeRecords([{ firstName, lastName, email, role, hashedPassword }]);
-
-    console.log('Data successfully written to users.csv');
-    res.status(200).json({ success: true, message: 'User signed up and saved to users.csv!' });
-
-  } catch (error) {
-    console.error('Error during sign-up process:', error);
-    return res.status(500).json({ success: false, message: 'Internal Server Error' });
-  }
-});
+    const { firstName, lastName, email, password, role } = req.body;
+  
+    // Log that the route was hit
+    console.log('Received POST request at /sign-up');
+  
+    // Check if all required fields are present
+    if (!firstName || !lastName || !email || !password || !role) {
+      console.log('Missing required fields:', { firstName, lastName, email, password, role });
+      return res.status(400).json({ success: false, message: 'All fields are required.' });
+    }
+  
+    try {
+      // Read existing users from CSV
+      const users = await readUsersFromCSV();
+  
+      // Check if the email already exists
+      const existingUser = users.find(user => user.Email.trim().toLowerCase() === email.trim().toLowerCase());
+      if (existingUser) {
+        return res.status(400).json({ success: false, message: 'Email already exists. Please use a different email.' });
+      }
+  
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      console.log('Password hashed successfully');
+  
+      // Write the user data to the existing 'users.csv' file
+      await csvWriter.writeRecords([{ firstName, lastName, email, role, hashedPassword }]);
+  
+      console.log('Data successfully written to users.csv');
+      res.status(200).json({ success: true, message: 'User signed up and saved to users.csv!' });
+  
+    } catch (error) {
+      console.error('Error during sign-up process:', error);
+      return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+  });
 
 // Route to handle login requests
 app.post('/login', async (req, res) => {
