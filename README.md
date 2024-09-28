@@ -1,4 +1,4 @@
-# PeerAssessmentReview
-The purpose of this project ios to develop a web application that allows teachers to create groups and for students to view which teams they have been assigned to.
-
-Team roles:
+# Log in and sign up modified
+The log in and sign up pages were updated with a fixed bug.
+Before, if the user has a student account and tries to log in after pressing Teacher role button, it takes him to the teacher dashbord, which must throw an error message.
+Now, the server will show an error message if the user tries to log in with the wrong role.
