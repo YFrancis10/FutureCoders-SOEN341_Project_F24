@@ -3,6 +3,7 @@
 //npm install --save-dev nodemon
 //npm install react react-dom axios    
 //npm install react-router-dom 
+// IMPORTANT: install mongodb compass on your computer as well
 import express from 'express';
 import bcrypt from 'bcrypt';
 import cors from 'cors';
