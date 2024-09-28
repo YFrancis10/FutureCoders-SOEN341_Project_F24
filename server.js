@@ -1,144 +1,113 @@
-import express from 'express'
-import mongoose from 'mongoose'
-import cors from 'cors'
-import path from 'path'
+import express from 'express';
 import bcrypt from 'bcrypt';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+import cors from 'cors';
+import mongoose from 'mongoose';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const port = 5001;
-
+// Initialize the express app
 const app = express();
+app.use(express.json()); // Using built-in express middleware
+app.use(cors());
 
-// CORS config
-app.use(cors({
-    origin: 'http://localhost:5173',
-    methods: ['GET', 'POST']
-}))
-
-app.use(express.static(__dirname))
-app.use(express.urlencoded({ extended: true }))
-
-// To parse incoming JSON  requests
-app.use(express.json())
-
+// Connect to MongoDB
 mongoose.connect('mongodb://127.0.0.1:27017/School', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
-const db = mongoose.connection
-db.once('open', () => {
-    console.log("MongoDB connection successful")
-})
-
+// Schema and Model Definitions
 const studentSchema = new mongoose.Schema({
-    firstName: String,
-    lastName: String,
-    email: String,
-    password: String,
-    role: { type: String, default: 'student' }
-})
+  firstName: String,
+  lastName: String,
+  email: String,
+  password: String,
+  role: { type: String, default: 'student' }
+});
 
-const studentModel = mongoose.model("Student", studentSchema)
+const studentModel = mongoose.model("Student", studentSchema);
 
 const teacherSchema = new mongoose.Schema({
-    firstName: String,
-    lastName: String,
-    email: String,
-    password: String,
-    role: { type: String, default: 'teacher' },
-    teams: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }]
-})
+  firstName: String,
+  lastName: String,
+  email: String,
+  password: String,
+  role: { type: String, default: 'teacher' },
+  teams: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }]
+});
 
-const teacherModel = mongoose.model("Teacher", teacherSchema)
+const teacherModel = mongoose.model("Teacher", teacherSchema);
 
-const teamSchema = new mongoose.Schema({
-    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
-    studentIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Student" }],
-    teamName: String
-})
-
-const teamModel = mongoose.model("Team", teamSchema)
-
+// Route to handle sign-up requests
 app.post('/Signup', async (req, res) => {
-    const { firstName, lastName, email, password, role } = req.body;
+  const { firstName, lastName, email, password, role } = req.body;
 
-    console.log('Received sign-up request with data:', req.body);
+  // Log that the route was hit
+  console.log('Received POST request at /sign-up');
 
-    if(!firstName || !lastName || !email || !password || !role){
-        console.log('Missing required fields:', {firstName, lastName, email, password, role });
-        return res.status(400).json({success: false, message: 'All fields are required.'});
+  // Check if all required fields are present
+  if (!firstName || !lastName || !email || !password || !role) {
+    console.log('Missing required fields:', { firstName, lastName, email, password, role });
+    return res.status(400).json({ success: false, message: 'All fields are required.' });
+  }
+
+  try {
+    // Check if the email already exists in the database
+    let user = await studentModel.findOne({ email }) || await teacherModel.findOne({ email });
+    if (user) {
+      return res.status(400).json({ success: false, message: 'Email already exists. Please use a different email.' });
     }
-    try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        let user;
 
-        if (role === 'teacher') {
-            user = new teacherModel({ firstName, lastName, email, password: hashedPassword, role });
-        } else {
-            user = new studentModel({ firstName, lastName, email, password: hashedPassword, role });
-        }
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log('Password hashed successfully');
 
-        await user.save();
-        console.log('User data successfully save to database')
-        res.status(200).send({success: true, message:'User signed up and saved to databse'});
-    } catch (error) {
-        console.error('Error during sign-up',error);
-        res.status(500).send({success: false, message: 'Failed to save user data'});
+    // Save user to MongoDB based on role
+    if (role === 'teacher') {
+      user = new teacherModel({ firstName, lastName, email, password: hashedPassword, role });
+    } else {
+      user = new studentModel({ firstName, lastName, email, password: hashedPassword, role });
     }
-})
 
-app.post('/teams', async (req, res) => {
-    try {
-        const { teacherId, studentIds, teamName } = req.body;
+    await user.save();
+    console.log('User saved to MongoDB');
+    res.status(200).json({ success: true, message: 'User signed up and saved to the database!' });
 
-        const team = new teamModel({ teacherId, studentIds, teamName });
-        await team.save();
+  } catch (error) {
+    console.error('Error during sign-up process:', error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
 
-        // Optionally, update the teacher's teams
-        await teacherModel.findByIdAndUpdate(teacherId, { $push: { teams: team._id } });
+// Route to handle login requests
+app.post('/Login', async (req, res) => {
+  const { email, password } = req.body;
 
-        res.status(201).send("Team created successfully");
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("An error occurred while creating the team");
+  console.log('Received POST request at /login');
+
+  try {
+    // Look for user in both student and teacher collections
+    let user = await studentModel.findOne({ email }) || await teacherModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
     }
-})
 
-app.post('/Login', async(req, res)=> {
-    try{
-        const {email, password } = req.body;
+    // Check the hashed password
+    const match = await bcrypt.compare(password, user.password);
 
-        let user = await studentModel.findOne({email});
-        if(!user){
-            user = await teacherModel.findOne({email});
-        }
-
-        if(!user){
-            return res.status(404).send("User not found");
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if(!isMatch){
-            return res.status(401).send("Invalid password");
-        }
-
-        res.send("Login successful")
-    } catch(error){
-        console.error(error);
-        res.status(500).send("An error occurred during login");
+    if (match) {
+      res.status(200).json({ success: true, role: user.role });
+    } else {
+      res.status(401).json({ success: false, message: 'Incorrect password.' });
     }
-} )
+  } catch (error) {
+    console.error('Error during login process:', error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'))
-})
+// Start the server on port 5001
+const PORT = process.env.PORT || 5001;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
 
-
-app.listen(port, () => {
-    console.log("Server is running")
-})
