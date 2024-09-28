@@ -1,3 +1,8 @@
+// Will need to do:
+//npm install express mongoose cors bcrypt   
+//npm install --save-dev nodemon
+//npm install react react-dom axios    
+//npm install react-router-dom 
 import express from 'express';
 import bcrypt from 'bcrypt';
 import cors from 'cors';
