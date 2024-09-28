@@ -1,9 +1,17 @@
 // Will need to do:
-//npm install express mongoose cors bcrypt   
-//npm install --save-dev nodemon
-//npm install react react-dom axios    
-//npm install react-router-dom 
-// IMPORTANT: install mongodb compass on your computer as well
+// 1. Install backend dependencies:
+//    npm install express mongoose cors bcrypt
+//    npm install --save-dev nodemon
+
+// 2. Install frontend dependencies (for React app):
+//    npm install react react-dom axios react-router-dom
+
+// 3. Install Tailwind CSS (if using it for styling):
+//    npm install tailwindcss postcss autoprefixer
+//    npx tailwindcss init -p
+
+// 4. IMPORTANT: Install MongoDB Compass or another MongoDB GUI to manage your database easily
+
 import express from 'express';
 import bcrypt from 'bcrypt';
 import cors from 'cors';
