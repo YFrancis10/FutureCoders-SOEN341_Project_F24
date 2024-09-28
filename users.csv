@@ -1,0 +1,11 @@
+FirstName,LastName,Email,Role,HashedPassword
+fouad,hi,fouad@example.com,student,$2b$10$xmwnxmW.TwtxSHPN2FKiq.C/PIK.MMDkGUX9yLD1Y2Y5Yju0OfK1e
+Rami,N,rami@example.com,student,$2b$10$SNbxNZBD/hPq8ugHonzJCO1aPaGzUzXTPZ/uk7DMn2j7gmy7g.cpK
+Youssef,F,youssef@example.com,student,$2b$10$ukfHjoee/QlCQxXS.j4gTupNWDYg1h4E5OJ0YaHOjzV9AvX2n7irq
+Nicolas,L,nicolas@example.com,student,$2b$10$DcBfjsvECOsSg0qAE6hTU.AS7bBj2sNhcfKzHiXrOhyHMI4cl8fBe
+Akshey,V,akshey@example.com,student,$2b$10$P9rRfOBcC3Ti02.CfTXx/OTYwpkJSNfadHVHKQX85FAj0gpvGD.Ta
+Youssef,Francis,youssef@example2.com,teacher,$2b$10$zA7VnHT98vTWqxSm8ud0NOfd4OkX0iEcAjaWn9A2p5YFaTLsDJvsi
+John ,Doe,johndoe@example.com,teacher,$2b$10$UV2yC4i3TMB.3mRR2tj/He2ssRKVeJl0znR0VZioW84/Snadmh6vS
+Ziad,Meida,jadzmfm@gmail.com,teacher,$2a$10$FK0DU4pEqS2h4Y3Tf8x.3.w9.fnswC.In9XKCHa4bYBoL82q9xeNu
+Bashar,Chamsi,basharchamsi@example.com,student,$2a$10$Xpwc7VvTyZ3BA723mUNNSePXYmCT6RCWl0jPm6hEAxWn.bn8ukJoS
+Fouad,Meida,jadfmzm@hotmail.com,student,$2a$10$Dm3TVX9iV.9Z9p.ICC.l8OAvcOFnCtAn8Pyk7s0ryNqz8q96viNmq
