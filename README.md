@@ -1,4 +1,5 @@
-# PeerAssessmentReview
-The purpose of this project ios to develop a web application that allows teachers to create groups and for students to view which teams they have been assigned to.
+# Student's dashboard
 
-Team roles:
+The student's dashboard will be access after passing the student log in procedure, which currently contains a blank page.
+Once the database is linked with the frontend, displaying teams in both student's and teacher's dashboards must be compleated since this feature is based on the database which must be compleated first and has the ability to save the created teams by the teacher. 
+(they must look like as small rectangular cells or components which contains the team's name and the teammates).
