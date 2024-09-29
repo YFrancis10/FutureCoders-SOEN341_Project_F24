@@ -14,20 +14,24 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Send signup request to backend
-    const response = await fetch('http://localhost:5001/sign-up', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
+    try {
+      const response = await fetch('http://localhost:5001/sign-up', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-    if (response.ok) {
-      alert('Sign up successful!');
-      navigate('/role-selection');
-    } else {
-      const data = await response.json(); // Get the JSON response
-      alert(data.message); // Show the error message from the server
+      if (response.ok) {
+        alert('Sign up successful!');
+        navigate('/role-selection');
+      } else {
+        const data = await response.json(); // Get the JSON response
+        alert(data.message); // Show the error message from the server
+      }
+    } catch (error) {
+      alert('An error occurred during sign-up. Please try again.');
     }
   };
 
@@ -100,7 +104,7 @@ export default function SignUp() {
           Already have an account?{' '}
           <span
             className="text-blue-600 cursor-pointer hover:underline"
-            onClick={() => navigate('/role-selection')}
+            onClick={() => navigate('/login')}
           >
             Log in
           </span>
