@@ -97,6 +97,10 @@ app.post('/login', async (req, res) => {
       const match = await bcrypt.compare(password, user.HashedPassword);
   
       if (match) {
+        console.log('test');
+      }
+      // Conditions 
+      if (match) {
         res.status(200).json({ success: true, role: user.Role });
       } else {
         res.status(401).json({ success: false, message: 'Incorrect password.' });
