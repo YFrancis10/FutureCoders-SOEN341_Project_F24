@@ -27,6 +27,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/School', {
   useUnifiedTopology: true,
 });
 
+
 // Schema and Model Definitions
 const studentSchema = new mongoose.Schema({
   firstName: String,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Send signup request to backend
-    const response = await fetch('http://localhost:3000/sign-up', {
+    const response = await fetch('http://localhost:5001/sign-up', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
