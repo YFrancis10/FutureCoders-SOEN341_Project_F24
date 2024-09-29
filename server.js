@@ -11,7 +11,6 @@
 //    npx tailwindcss init -p
 
 // 4. IMPORTANT: Install MongoDB Compass or another MongoDB GUI to manage your database easily
-
 import express from 'express';
 import bcrypt from 'bcrypt';
 import cors from 'cors';
