@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -25,7 +24,7 @@ export default function SignUp() {
 
     if (response.ok) {
       alert('Sign up successful!');
-      navigate('/login');
+      navigate('/role-selection');
     } else {
       const data = await response.json(); // Get the JSON response
       alert(data.message); // Show the error message from the server
@@ -101,7 +100,7 @@ export default function SignUp() {
           Already have an account?{' '}
           <span
             className="text-blue-600 cursor-pointer hover:underline"
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/role-selection')}
           >
             Log in
           </span>
@@ -110,4 +109,3 @@ export default function SignUp() {
     </div>
   );
 }
-

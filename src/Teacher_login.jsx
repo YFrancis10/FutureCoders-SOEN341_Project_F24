@@ -1,45 +1,38 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
-const Login = () => {
+export default function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
 
-  const handleLogin = async (e) => {
-    e.preventDefault(); // Prevent form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    try {
-      const response = await axios.post('http://localhost:5001/Login', {
-        email,
-        password,
-      });
+    const response = await fetch('http://localhost:5001/teacher-login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }), 
+    });
 
-      const data = response.data;
+    const data = await response.json();
 
-      if (response.status === 200) {
-        if (data.role === 'student') {
-          navigate('/student-dashboard');
-        } else if (data.role === 'teacher') {
-          navigate('/teacher-dashboard');
-        }
-      } else {
-        setMessage(data.message || "An error occurred");
-      }
-    } catch (error) {
-      setMessage(error.response?.data || "An error occurred");
+    if (response.ok) {
+      // Since this is the teacher login page, directly navigate to the teacher dashboard
+      navigate('/teacher-dashboard');
+    } else {
+      alert("User not found. Please try again!"); // Show error message
     }
   };
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-blue-500 to-blue-400">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Log In</h2>
-
-        {/* The form */}
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700">Email</label>
             <input
@@ -67,16 +60,11 @@ const Login = () => {
             Log In
           </button>
         </form>
-
-        {/* Feedback message */}
-        {message && <p className="mt-4 text-center text-red-600">{message}</p>} 
-
-        {/* Navigation link */}
         <p className="mt-4 text-center text-gray-600">
           Don't have an account?{' '}
           <span
             className="text-blue-600 cursor-pointer hover:underline"
-            onClick={() => navigate('/Signup')}
+            onClick={() => navigate('/sign-up')}
           >
             Sign Up
           </span>
@@ -84,6 +72,4 @@ const Login = () => {
       </div>
     </div>
   );
-};
-
-export default Login;
+}

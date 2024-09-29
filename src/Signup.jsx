@@ -1,31 +1,33 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
-const Signup = () => {
+export default function SignUp() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     password: '',
-    role: 'student', // Default role
+    role: '',
   });
-  const [message, setMessage] = useState('');
 
-  const handleSignup = async (e) => {
-    e.preventDefault(); // Prevent form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    // Send signup request to backend
+    const response = await fetch('http://localhost:5001/sign-up', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
 
-    try {
-      const response = await axios.post('http://localhost:5001/Signup', formData);
-
-      if (response.status === 200) {
-        setMessage(response.data.message); // Success message
-        alert('Sign up successful!');
-        navigate('/login'); // Redirect to login after successful signup
-      }
-    } catch (error) {
-      setMessage(error.response?.data?.message || 'An error occurred');
+    if (response.ok) {
+      alert('Sign up successful!');
+      navigate('/role-selection');
+    } else {
+      const data = await response.json(); // Get the JSON response
+      alert(data.message); // Show the error message from the server
     }
   };
 
@@ -33,7 +35,7 @@ const Signup = () => {
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-blue-500 to-blue-400">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Sign Up</h2>
-        <form onSubmit={handleSignup}>
+        <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700">First Name</label>
             <input
@@ -82,6 +84,7 @@ const Signup = () => {
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
+              <option value="">Select Role</option>
               <option value="student">Student</option>
               <option value="teacher">Teacher</option>
             </select>
@@ -93,14 +96,11 @@ const Signup = () => {
             Sign Up
           </button>
         </form>
-
-        {message && <p className="mt-4 text-center text-red-600">{message}</p>} {/* Error message */}
-
         <p className="mt-4 text-center">
           Already have an account?{' '}
           <span
             className="text-blue-600 cursor-pointer hover:underline"
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/role-selection')}
           >
             Log in
           </span>
@@ -108,6 +108,4 @@ const Signup = () => {
       </div>
     </div>
   );
-};
-
-export default Signup;
+}
