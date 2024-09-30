@@ -202,6 +202,21 @@ app.post('/teams', verifyToken, async (req, res) => {
   }
 });
 
+
+app.get('/student/teams', verifyToken, async (req, res) => {
+  try {
+    const studentId = req.user.id; 
+    const teams = await teamModel.find({ students: studentId }) 
+      .populate('students', 'firstName lastName') 
+      .exec();
+
+    res.json(teams);
+  } catch (error) {
+    console.error('Error fetching teams:', error);
+    res.status(500).json({ message: 'Failed to fetch teams' });
+  }
+});
+
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
