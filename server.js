@@ -11,6 +11,7 @@
 //    npx tailwindcss init -p
 
 // 4. IMPORTANT: Install MongoDB Compass or another MongoDB GUI to manage your database easily
+
 import express from 'express';
 import bcrypt from 'bcrypt';
 import cors from 'cors';
@@ -50,15 +51,24 @@ const teacherSchema = new mongoose.Schema({
 
 const teacherModel = mongoose.model("Teacher", teacherSchema);
 
+// Team Schema
+const teamSchema = new mongoose.Schema({
+  name: String,
+  students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
+  teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }
+});
+
+const teamModel = mongoose.model("Teams", teamSchema);
+
 // Verify Token Middleware
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
   if (!token) return res.status(403).json({ message: 'No token provided' });
 
   jwt.verify(token, 'your-secret-key', (err, decoded) => {
-      if (err) return res.status(500).json({ message: 'Failed to authenticate token' });
-      req.user = { id: decoded.id }; // Assuming your token contains the user's ID
-      next();
+    if (err) return res.status(500).json({ message: 'Failed to authenticate token' });
+    req.user = { id: decoded.id }; // Assuming your token contains the user's ID
+    next();
   });
 };
 
@@ -125,7 +135,6 @@ app.post('/Login', async (req, res) => {
   }
 });
 
-
 // Route to get the logged-in student's details
 app.get('/student/me', verifyToken, async (req, res) => {
   try {
@@ -137,6 +146,18 @@ app.get('/student/me', verifyToken, async (req, res) => {
   }
 });
 
+// Route to get all students
+app.get('/students', verifyToken, async (req, res) => {
+  try {
+    const students = await studentModel.find().select('-password'); // Exclude password field
+    res.json(students);
+  } catch (error) {
+    console.error('Error fetching students:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Route to get the logged-in teacher's details
 app.get('/teacher/me', verifyToken, async (req, res) => {
   try {
     const teacher = await teacherModel.findById(req.user.id); // Assuming req.user is set by your auth middleware
@@ -148,6 +169,38 @@ app.get('/teacher/me', verifyToken, async (req, res) => {
   }
 });
 
+// Route to get teams for a teacher
+app.get('/teacher/teams', verifyToken, async (req, res) => {
+  try {
+    const teacherId = req.user.id; // Assuming you're using middleware to get the logged-in user
+    const teams = await teamModel.find({ teacher: teacherId }); // Fetch teams associated with the teacher
+    const teamsResponse = teams.map(team => ({
+      id: team._id,
+      name: team.name
+    }));
+    res.json(teamsResponse);
+  } catch (error) {
+    console.error('Error fetching teams:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Route to create a team
+app.post('/teams', verifyToken, async (req, res) => {
+  const { name, students } = req.body; // students should be an array of student IDs
+  try {
+    const team = new teamModel({ name, students, teacher: req.user.id }); // Associate team with the teacher
+    await team.save();
+    
+    // Optionally update teacher's teams
+    await teacherModel.findByIdAndUpdate(req.user.id, { $push: { teams: team._id } });
+    
+    res.status(201).json({ success: true, team });
+  } catch (error) {
+    console.error('Error creating team:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
 
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
