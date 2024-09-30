@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Teams() {
   const [students, setStudents] = useState([]);
   const [teamName, setTeamName] = useState('');
   const [selectedStudents, setSelectedStudents] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -30,6 +32,13 @@ function Teams() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validation checks
+    if (!teamName || selectedStudents.length < 2) {
+      alert('Please enter a team name and select at least two students for the team.');
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       await axios.post('http://localhost:5001/teams', { name: teamName, students: selectedStudents }, {
@@ -46,6 +55,10 @@ function Teams() {
     }
   };
 
+  const handleGoBack = () => {
+    navigate('/Teacher_Dashboard'); 
+  };
+
   return (
     <div className="min-h-full">
       <div className="bg-gradient-to-b from-blue-500 to-blue-400 py-4">
@@ -57,7 +70,7 @@ function Teams() {
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="teamName" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="teamName" className="block text-xl font-semibold text-gray-700">
                 Team Name
               </label>
               <input
@@ -86,12 +99,21 @@ function Teams() {
               ))}
             </div>
 
-            <button
-              type="submit"
-              className="mt-4 inline-flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Create Team
-            </button>
+            <div className="mt-4 flex space-x-4">
+              <button
+                onClick={handleGoBack} 
+                className="inline-flex items-center justify-center rounded-md bg-gray-200 text-black px-4 py-2 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-transform transform hover:scale-105"
+              >
+                Go Back
+              </button>
+
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-transform transform hover:scale-105"
+              >
+                Create Team
+              </button>
+            </div>
           </form>
         </div>
       </main>
