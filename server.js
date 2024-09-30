@@ -15,6 +15,7 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
 
 // Initialize the express app
 const app = express();
@@ -50,16 +51,24 @@ const teacherSchema = new mongoose.Schema({
 
 const teacherModel = mongoose.model("Teacher", teacherSchema);
 
+// Verify Token Middleware
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
+  if (!token) return res.status(403).json({ message: 'No token provided' });
+
+  jwt.verify(token, 'your-secret-key', (err, decoded) => {
+      if (err) return res.status(500).json({ message: 'Failed to authenticate token' });
+      req.user = { id: decoded.id }; // Assuming your token contains the user's ID
+      next();
+  });
+};
+
 // Route to handle sign-up requests
 app.post('/Signup', async (req, res) => {
   const { firstName, lastName, email, password, role } = req.body;
 
-  // Log that the route was hit
-  console.log('Received POST request at /sign-up');
-
   // Check if all required fields are present
   if (!firstName || !lastName || !email || !password || !role) {
-    console.log('Missing required fields:', { firstName, lastName, email, password, role });
     return res.status(400).json({ success: false, message: 'All fields are required.' });
   }
 
@@ -72,7 +81,6 @@ app.post('/Signup', async (req, res) => {
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log('Password hashed successfully');
 
     // Save user to MongoDB based on role
     if (role === 'teacher') {
@@ -82,7 +90,6 @@ app.post('/Signup', async (req, res) => {
     }
 
     await user.save();
-    console.log('User saved to MongoDB');
     res.status(200).json({ success: true, message: 'User signed up and saved to the database!' });
 
   } catch (error) {
@@ -94,8 +101,6 @@ app.post('/Signup', async (req, res) => {
 // Route to handle login requests
 app.post('/Login', async (req, res) => {
   const { email, password } = req.body;
-
-  console.log('Received POST request at /login');
 
   try {
     // Look for user in both student and teacher collections
@@ -109,7 +114,9 @@ app.post('/Login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
 
     if (match) {
-      res.status(200).json({ success: true, role: user.role });
+      // Generate a token
+      const token = jwt.sign({ id: user._id }, 'your-secret-key', { expiresIn: '1h' }); // You can adjust the expiration time as needed
+      res.status(200).json({ success: true, role: user.role, token }); // Return the token along with role
     } else {
       res.status(401).json({ success: false, message: 'Incorrect password.' });
     }
@@ -119,9 +126,32 @@ app.post('/Login', async (req, res) => {
   }
 });
 
+
+// Route to get the logged-in student's details
+app.get('/student/me', verifyToken, async (req, res) => {
+  try {
+    const student = await studentModel.findById(req.user.id).select('-password'); // Exclude password field
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+    res.json(student);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/teacher/me', verifyToken, async (req, res) => {
+  try {
+    const teacher = await teacherModel.findById(req.user.id); // Assuming req.user is set by your auth middleware
+    if (!teacher) return res.status(404).json({ message: 'Teacher not found' });
+    res.json(teacher);
+  } catch (error) {
+    console.error('Error fetching teacher data:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
