@@ -16,6 +16,7 @@ function classNames(...classes) {
 
 function TeacherDashboard() {
   const [teacher, setTeacher] = useState(null);
+  const [teams, setTeams] = useState([]); // State for teams
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +27,12 @@ function TeacherDashboard() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setTeacher(response.data);
+
+        // Fetch teams data
+        const teamsResponse = await axios.get('http://localhost:5001/teacher/teams', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setTeams(teamsResponse.data); // Set teams state
       } catch (error) {
         console.error('Error fetching teacher data', error);
       }
@@ -52,7 +59,6 @@ function TeacherDashboard() {
                 </div>
                 <div className="hidden md:block">
                   <div className="ml-10 flex items-baseline space-x-4">
-                    {/* Add navigation items here */}
                     <a href="#" className={classNames('text-gray-300 hover:bg-blue-600 hover:text-white', 'rounded-md px-3 py-2 text-sm font-medium')}>
                       Dashboard
                     </a>
@@ -102,7 +108,6 @@ function TeacherDashboard() {
 
           <DisclosurePanel className="md:hidden">
             <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
-              {/* Add mobile navigation items here */}
               <DisclosureButton as="a" href="#" className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white">
                 Dashboard
               </DisclosureButton>
@@ -121,11 +126,26 @@ function TeacherDashboard() {
             <h1 className="text-2xl font-bold">Welcome, {teacher.firstName} {teacher.lastName}</h1>
             <p>Email: {teacher.email}</p>
             <p>Role: {teacher.role}</p>
-            <p>Teams: {teacher.teams.join(', ')}</p>
+            
+
+            {/* Display list of teams */}
+            <h2 className="text-xl font-semibold mt-4">Your Teams:</h2>
+            <ul className="mt-2">
+              {teams.length > 0 ? (
+                teams.map((team) => (
+                  <li key={team.name} className="border-b py-2">
+                    {team.name}
+                  </li>
+                ))
+              ) : (
+                <li>No teams found.</li>
+              )}
+            </ul>
+
             {/* Create a new team button */}
             <button 
               onClick={handleCreateTeam} 
-              className="flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-lg transform transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105"
+              className="flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-lg transform transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105 mt-4"
             >
               <span className="mr-2">+</span> Create a new team
             </button>
