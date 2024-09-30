@@ -51,6 +51,15 @@ const teacherSchema = new mongoose.Schema({
 
 const teacherModel = mongoose.model("Teacher", teacherSchema);
 
+// Team Schema for teams
+const teamSchema = new mongoose.Schema({
+  name: String,
+  students: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
+  teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }
+});
+const teamModel = mongoose.model("Teams", teamSchema);
+
+
 // Verify Token Middleware
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
@@ -148,6 +157,8 @@ app.get('/teacher/me', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
+
 
 
 // Start the server on port 5001
