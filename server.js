@@ -170,20 +170,42 @@ app.get('/teacher/me', verifyToken, async (req, res) => {
 });
 
 // Route to get teams for a teacher
+// app.get('/teacher/teams', verifyToken, async (req, res) => {
+//   try {
+//     const teacherId = req.user.id; // Assuming you're using middleware to get the logged-in user
+//     const teams = await teamModel.find({ teacher: teacherId }); // Fetch teams associated with the teacher
+//     const teamsResponse = teams.map(team => ({
+//       id: team._id,
+//       name: team.name
+//     }));
+//     res.json(teamsResponse);
+//   } catch (error) {
+//     console.error('Error fetching teams:', error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// Route to get teams for a teacher
 app.get('/teacher/teams', verifyToken, async (req, res) => {
   try {
     const teacherId = req.user.id; // Assuming you're using middleware to get the logged-in user
-    const teams = await teamModel.find({ teacher: teacherId }); // Fetch teams associated with the teacher
+    const teams = await teamModel.find({ teacher: teacherId })
+      .populate('students', 'firstName lastName') // Populate the students' firstName and lastName
+      .exec(); // Use exec() to execute the query
+    
     const teamsResponse = teams.map(team => ({
       id: team._id,
-      name: team.name
+      name: team.name,
+      students: team.students, // Include the populated students
     }));
+    
     res.json(teamsResponse);
   } catch (error) {
     console.error('Error fetching teams:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // Route to create a team
 app.post('/teams', verifyToken, async (req, res) => {
