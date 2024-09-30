@@ -10,26 +10,29 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault(); // Prevent form submission
-
+  
     try {
       const response = await axios.post('http://localhost:5001/Login', {
         email,
         password,
       });
-
+  
       const data = response.data;
-
+  
       if (response.status === 200) {
+        // Save the token in local storage
+        localStorage.setItem('token', data.token);
+  
         if (data.role === 'student') {
-          navigate('/student-dashboard');
+          navigate('/Student_Dashboard');
         } else if (data.role === 'teacher') {
-          navigate('/teacher-dashboard');
+          navigate('/Teacher_Dashboard');
         }
       } else {
         setMessage(data.message || "An error occurred");
       }
     } catch (error) {
-      setMessage(error.response?.data || "An error occurred");
+      setMessage(error.response?.data.message || "An error occurred");
     }
   };
 

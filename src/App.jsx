@@ -1,7 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
 import Signup from './Signup';
 import Login from './Login';
+import StudentDashboard from './Student_Dashboard'; 
+import TeacherDashboard from './Teacher_Dashboard';
+
 
 const App = () => {
   return (
@@ -20,6 +23,8 @@ const App = () => {
       <Routes>
         <Route path="/Signup" element={<Signup />} />
         <Route path="/Login" element={<Login />} />
+        <Route path="/Student_Dashboard" element={<StudentDashboard />} />
+        <Route path="/Teacher_Dashboard" element={<TeacherDashboard />} />
         <Route path="/" element={<Login />} />  {/* Redirect root to login */}
       </Routes>
     </Router>
