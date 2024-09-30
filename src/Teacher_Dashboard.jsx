@@ -291,8 +291,20 @@ function TeacherDashboard() {
             <ul className="mt-2 space-y-2">
               {teams.length > 0 ? (
                 teams.map((team) => (
-                  <li key={team.name} className="border rounded-md p-3 shadow-md bg-gray-50 hover:bg-gray-100 transition duration-150 ease-in-out">
-                    {team.name}
+                  <li key={team.id} className="border rounded-md p-3 shadow-md bg-gray-50 hover:bg-gray-100 transition duration-150 ease-in-out">
+                    <h3 className="font-bold">{team.name}</h3>
+                    <p className="text-gray-600">Students:</p>
+                    {team.students.length > 0 ? (
+                      <ul className="list-disc list-inside ml-4">
+                        {team.students.map(student => (
+                          <li key={student._id}>
+                            {student.firstName} {student.lastName}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>No students in this team.</p>
+                    )}
                   </li>
                 ))
               ) : (
@@ -315,3 +327,4 @@ function TeacherDashboard() {
 }
 
 export default TeacherDashboard;
+
