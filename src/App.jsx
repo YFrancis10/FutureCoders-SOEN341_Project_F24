@@ -10,16 +10,20 @@ import Teams from './Teams';
 const App = () => {
   return (
     <Router>
-      <nav>
-        <ul>
-          <li>
-            <Link to="/Signup">Signup</Link>
-          </li>
-          <li>
-            <Link to="/Login">Login</Link>
-          </li>
-        </ul>
-      </nav>
+        <div className="flex justify-center mt-0 space-x-4">
+        <a
+          href="/login"
+          className="rounded-md bg-blue-700 text-white px-4 py-2 text-sm font-medium transition-transform hover:scale-105"
+        >
+          Log In
+        </a>
+        <a
+          href="/signup"
+          className="rounded-md bg-blue-500 text-white px-4 py-2 text-sm font-medium transition-transform hover:scale-105"
+        >
+          Sign Up
+        </a>
+      </div>
 
       <Routes>
         <Route path="/Signup" element={<Signup />} />
