@@ -24,7 +24,7 @@ app.use(express.json()); // Using built-in express middleware
 app.use(cors());
 
 // Connect to MongoDB
-mongoose.connect('mongodb://127.0.0.1:27017/School', {
+mongoose.connect('mongodb+srv://akshey54321:l9bJF0W0Q2T1mA35@cluster0.xvsl6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
