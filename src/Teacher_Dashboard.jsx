@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 const userNavigation = [
   { name: 'Your Profile', href: '#' },
   { name: 'Settings', href: '#' },
-  { name: 'Sign out', href: '#' },
+  { name: 'Sign out', href: '/Login' },
 ];
 
 function classNames(...classes) {
