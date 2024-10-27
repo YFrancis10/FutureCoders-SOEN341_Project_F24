@@ -34,4 +34,8 @@ jobs:
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
-    ${{ secrets.MONGODB_URI }}
+
+  env:
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      run: npm run dev
+      if: success() && github.event_name == 'push'
