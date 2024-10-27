@@ -12,8 +12,6 @@
     "start": "node server.js",
     "client": "vite"
     "test": "jest",                    // Replace 'jest' with your test runner if different
-    "lint": "eslint .",                // Update this to match your linter configuration
-    "build": "react-scripts build"     // Adjust for your project's build command
   },
   "dependencies": {
     "@headlessui/react": "^2.1.8",
