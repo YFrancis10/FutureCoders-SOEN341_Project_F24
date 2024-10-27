@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const user = {
   name: 'Tom Cook',
@@ -23,64 +22,66 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
-function StudentDashboard() {
-  const [student, setStudent] = useState(null);
-  const [teams, setTeams] = useState([]);
-  const [error, setError] = useState(null);
+const TeamEvaluation = () => {
+  const location = useLocation();
   const navigate = useNavigate();
+  const { team } = location.state;
 
-  useEffect(() => {
-    const fetchStudentData = async () => {
-      try {
-        const token = localStorage.getItem('token'); // Retrieve token from local storage
-        const response = await axios.get('http://localhost:5001/student/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setStudent(response.data);
-      } catch (error) {
-        console.error('Error fetching student data', error);
-        setError('Failed to load student data. Please try again later.');
-      }
-    };
+  const [selectedTeammates, setSelectedTeammates] = useState([]);
+  const [evaluationType, setEvaluationType] = useState('');
 
-    fetchStudentData();
-  }, []);
-
-  useEffect(() => {
-    const fetchTeams = async () => {
-      try {
-        const token = localStorage.getItem('token'); // Retrieve token from local storage
-        const response = await axios.get('http://localhost:5001/student/teams', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTeams(response.data);
-      } catch (error) {
-        console.error('Error fetching teams', error);
-        setError('Failed to load teams. Please try again later.');
-      }
-    };
-
-    if (student) {
-      fetchTeams();
+  const handleTeammateChange = (e, teammate) => {
+    const { checked } = e.target;
+    if (checked) {
+      setSelectedTeammates([...selectedTeammates, teammate]);
+    } else {
+      setSelectedTeammates(selectedTeammates.filter((t) => t._id !== teammate._id));
     }
-  }, [student]);
+  };
+  
 
   const handleLogout = () => {
     localStorage.removeItem('token'); // Clear token from local storage
     navigate('/login'); // Redirect to login page
   };
 
-  const handleSelectTeam = (team) => {
-    // Navigate to the team evaluation page and pass the team object via state
-    navigate(`/Team_Evaluation/${team._id}`, { state: { team } });
+  const goBackHome = () => {
+    navigate('/Student_Dashboard');
   };
 
-  if (error) return <p>{error}</p>;
-  if (!student) return <p>Loading...</p>;
-
-  if (error) return <p>{error}</p>;
-  if (!student) return <p>Loading...</p>;
-
+  const handleSubmit = (e) => {
+    e.preventDefault();
+  
+    if (selectedTeammates.length === 0 || evaluationType === '') {
+      alert('Please select at least one teammate and an evaluation type.');
+      return;
+    }
+  
+    // Use switch to handle routing based on evaluation type
+    switch (evaluationType) {
+      case 'Type1': // Cooperation
+        navigate('/Cooperation', { state: { selectedTeammates, teamName: team.name, evaluationType } });
+        break;
+      
+      case 'Type2': // Conceptual Contribution
+        navigate('/Conceptual_Contribution', { state: { selectedTeammates, teamName: team.name, evaluationType } });
+        break;
+  
+      case 'Type3': // Practical Contribution
+        navigate('/Practical_Contribution', { state: { selectedTeammates, teamName: team.name, evaluationType } });
+        break;
+  
+      case 'Type4': // Work Ethic
+        navigate('/Work_Ethic', { state: { selectedTeammates, teamName: team.name, evaluationType } });
+        break;
+  
+      default:
+        console.error('Invalid evaluation type');
+        break;
+    }
+  };
+  
+  
   return (
     <>
       <div className="min-h-full">
@@ -122,7 +123,6 @@ function StudentDashboard() {
                         <BellIcon className="h-6 w-6" aria-hidden="true" />
                       </button>
 
-                      {/* Profile dropdown */}
                       <Menu as="div" className="relative ml-3">
                         <div>
                           <Menu.Button className="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
@@ -178,7 +178,6 @@ function StudentDashboard() {
                     </div>
                   </div>
                   <div className="-mr-2 flex md:hidden">
-                    {/* Mobile menu button */}
                     <Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                       <span className="sr-only">Open main menu</span>
                       {open ? (
@@ -251,42 +250,63 @@ function StudentDashboard() {
 
         <header className="bg-white shadow">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Student's Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Team Evaluation</h1>
           </div>
         </header>
 
-        <main>
+        <main className="ml-0">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1>Welcome, {student.firstName} {student.lastName}</h1>
-            <p>Email: {student.email}</p>
-            <p>Role: {student.role}</p>
+            <div className="max-w-2xl py-6 px-4">
+              <h1 className="text-3xl font-bold mb-4">Evaluate Team: {team.name}</h1>
+              <form onSubmit={handleSubmit}>
+                <h2 className="text-2xl mb-4">Select teammates to evaluate:</h2>
+                {team.students.map((teammate) => (
+                  <div key={teammate._id} className="mb-2">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        onChange={(e) => handleTeammateChange(e, teammate)} // Pass the teammate object
+                        className="mr-2"
+                      />
+                      {teammate.firstName} {teammate.lastName}
+                    </label>
+                  </div>
+                ))}
 
-            <h2 className="mt-6 text-2xl font-semibold">Your Teams</h2>
-            <ul className="mt-4">
-              {teams.length > 0 ? (
-                teams.map((team) => (
-                  <li key={team._id} className="flex justify-between items-center p-4 border-b border-gray-200">
-                    <div>
-                      <h3 className="text-lg font-medium">{team.name}</h3>
-                      <p className="text-sm">Members: {team.students.map((s) => `${s.firstName} ${s.lastName}`).join(', ')}</p>
-                    </div>
-                    <button 
-                      onClick={() => handleSelectTeam(team)}
-                      className="flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-lg transform transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105 mt-4"
-                      >
-                      Select Team
-                    </button>
-                  </li>
-                ))
-              ) : (
-                <p>No teams found.</p>
-              )}
-            </ul>
+                <h2 className="text-2xl mt-6 mb-4">Select evaluation type:</h2>
+                <select
+                  value={evaluationType}
+                  onChange={(e) => setEvaluationType(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded mb-4"
+                  required
+                >
+                  <option value="">--Select Evaluation Type--</option>
+                  <option value="Type1">Cooperation</option>
+                  <option value="Type2">Conceptual Contribution</option>
+                  <option value="Type3">Practical Contribution</option>
+                  <option value="Type4">Work Ethic</option>
+                </select>
+
+                <div className="flex space-x-4">
+                  <button
+                    type="button"
+                    onClick={goBackHome}
+                    className="inline-flex items-center justify-center rounded-md bg-gray-200 text-black px-4 py-2 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                    Go back
+                  </button>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-lg transform transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105">
+                    Rate
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </main>
       </div>
     </>
   );
-}
+};
 
-export default StudentDashboard;
+export default TeamEvaluation;

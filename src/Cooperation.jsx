@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const user = {
   name: 'Tom Cook',
@@ -23,63 +22,25 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
-function StudentDashboard() {
-  const [student, setStudent] = useState(null);
-  const [teams, setTeams] = useState([]);
-  const [error, setError] = useState(null);
+const Cooperation = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchStudentData = async () => {
-      try {
-        const token = localStorage.getItem('token'); // Retrieve token from local storage
-        const response = await axios.get('http://localhost:5001/student/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setStudent(response.data);
-      } catch (error) {
-        console.error('Error fetching student data', error);
-        setError('Failed to load student data. Please try again later.');
-      }
-    };
-
-    fetchStudentData();
-  }, []);
-
-  useEffect(() => {
-    const fetchTeams = async () => {
-      try {
-        const token = localStorage.getItem('token'); // Retrieve token from local storage
-        const response = await axios.get('http://localhost:5001/student/teams', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTeams(response.data);
-      } catch (error) {
-        console.error('Error fetching teams', error);
-        setError('Failed to load teams. Please try again later.');
-      }
-    };
-
-    if (student) {
-      fetchTeams();
-    }
-  }, [student]);
-
+  
+  // Check if selectedTeammates and teamName are passed correctly
+  const { selectedTeammates = [], teamName = '', teamId } = location.state || {};
+  
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Clear token from local storage
-    navigate('/login'); // Redirect to login page
+    localStorage.removeItem('token');
+    navigate('/login');
   };
 
-  const handleSelectTeam = (team) => {
-    // Navigate to the team evaluation page and pass the team object via state
-    navigate(`/Team_Evaluation/${team._id}`, { state: { team } });
+  const handleGoBack = () => {
+    navigate(`/Student_Dashboard`);
   };
 
-  if (error) return <p>{error}</p>;
-  if (!student) return <p>Loading...</p>;
-
-  if (error) return <p>{error}</p>;
-  if (!student) return <p>Loading...</p>;
+  const handleRate = (teammate) => {
+    navigate(`/PeerRating/${teamId}/${teammate._id}`, { state: { teammate } });
+  };  
 
   return (
     <>
@@ -91,7 +52,11 @@ function StudentDashboard() {
                 <div className="flex h-16 items-center justify-between">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <img alt="Your Company" src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500" className="h-8 w-8" />
+                      <img
+                        alt="Your Company"
+                        src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                        className="h-8 w-8"
+                      />
                     </div>
                     <div className="hidden md:block">
                       <div className="ml-10 flex items-baseline space-x-4">
@@ -122,7 +87,6 @@ function StudentDashboard() {
                         <BellIcon className="h-6 w-6" aria-hidden="true" />
                       </button>
 
-                      {/* Profile dropdown */}
                       <Menu as="div" className="relative ml-3">
                         <div>
                           <Menu.Button className="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
@@ -178,7 +142,6 @@ function StudentDashboard() {
                     </div>
                   </div>
                   <div className="-mr-2 flex md:hidden">
-                    {/* Mobile menu button */}
                     <Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                       <span className="sr-only">Open main menu</span>
                       {open ? (
@@ -251,42 +214,53 @@ function StudentDashboard() {
 
         <header className="bg-white shadow">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Student's Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Team Cooperation Evaluation</h1>
           </div>
         </header>
 
-        <main>
+        <main className="ml-0">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1>Welcome, {student.firstName} {student.lastName}</h1>
-            <p>Email: {student.email}</p>
-            <p>Role: {student.role}</p>
+            <div className="max-w-2xl py-6 px-4">
+              <h2 className="text-3xl font-bold mb-4">Team: {teamName || 'N/A'}</h2>
 
-            <h2 className="mt-6 text-2xl font-semibold">Your Teams</h2>
-            <ul className="mt-4">
-              {teams.length > 0 ? (
-                teams.map((team) => (
-                  <li key={team._id} className="flex justify-between items-center p-4 border-b border-gray-200">
-                    <div>
-                      <h3 className="text-lg font-medium">{team.name}</h3>
-                      <p className="text-sm">Members: {team.students.map((s) => `${s.firstName} ${s.lastName}`).join(', ')}</p>
-                    </div>
-                    <button 
-                      onClick={() => handleSelectTeam(team)}
-                      className="flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-lg transform transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105 mt-4"
-                      >
-                      Select Team
-                    </button>
-                  </li>
-                ))
-              ) : (
-                <p>No teams found.</p>
-              )}
-            </ul>
+              <div className="mt-6">
+                <div>
+                  {selectedTeammates.length > 0 ? (
+                    selectedTeammates.map((teammate, index) => (
+                      <div key={index}>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-lg font-medium text-gray-700">
+                            {teammate.firstName} {teammate.lastName}
+                          </span>
+                          <button
+                            onClick={() => handleRate(teammate)} // Pass the teammate object for routing
+                            className="inline-flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-lg transform transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105"
+                          >
+                            Rate
+                          </button>
+                        </div>
+                        <hr className="border-gray-300 my-4" />
+                      </div>
+                    ))
+                  ) : (
+                    <p>No teammates available</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <button
+                  onClick={handleGoBack}
+                  className="inline-flex items-center justify-center rounded-md bg-gray-200 text-black px-4 py-2 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                  Go Back to Student Dashboard
+                </button>
+              </div>
+            </div>
           </div>
         </main>
       </div>
     </>
   );
-}
+};
 
-export default StudentDashboard;
+export default Cooperation;

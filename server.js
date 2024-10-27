@@ -71,6 +71,17 @@ const verifyToken = (req, res, next) => {
     next();
   });
 };
+// Peer Rating Schema
+const peerRatingSchema = new mongoose.Schema({
+  rater: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true }, // The student who is giving the rating
+  ratee: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true }, // The student being rated
+  cooperation: { type: Number, required: true, min: 1, max: 5 },   // Rating for cooperation (1-5)
+  comment: { type: String },                                        // Optional comment
+  team: { type: mongoose.Schema.Types.ObjectId, ref: 'Teams', required: true }      // The team for context
+}, { timestamps: true });
+
+// Create the PeerRating model
+const peerRatingModel = mongoose.model('PeerRating', peerRatingSchema);
 
 // Route to handle sign-up requests
 app.post('/Signup', async (req, res) => {
@@ -236,6 +247,58 @@ app.get('/student/teams', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching teams:', error);
     res.status(500).json({ message: 'Failed to fetch teams' });
+  }
+});
+// Route to fetch a specific student's details
+app.get('/students/:studentId', verifyToken, async (req, res) => {
+  const { studentId } = req.params;
+
+  try {
+    const student = await studentModel.findById(studentId).select('-password'); // Exclude password
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+    
+    res.json(student);
+  } catch (error) {
+    console.error('Error fetching student details:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+// Route to submit a peer rating with comment
+app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
+  const { teamId } = req.params;
+  const { rateeId, cooperation, comment } = req.body;
+
+  // Validate cooperation rating
+  if (cooperation < 1 || cooperation > 5) {
+    return res.status(400).json({ message: 'Invalid rating value. It must be between 1 and 5.' });
+  }
+
+  try {
+    const team = await teamModel.findById(teamId).populate('students');
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found.' });
+    }
+
+    const isRaterInTeam = team.students.some(student => student._id.equals(req.user.id));
+    const isRateeInTeam = team.students.some(student => student._id.equals(rateeId));
+
+    if (!isRaterInTeam || !isRateeInTeam) {
+      return res.status(403).json({ message: 'Both the rater and ratee must be part of the same team.' });
+    }
+
+    const newRating = new peerRatingModel({
+      rater: req.user.id,
+      ratee: rateeId,
+      cooperation,
+      comment,
+      team: teamId
+    });
+
+    await newRating.save();
+    res.status(200).json({ success: true, message: 'Rating submitted successfully!' });
+  } catch (error) {
+    console.error('Error submitting peer rating:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
 

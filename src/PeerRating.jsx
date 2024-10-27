@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 
 const user = {
@@ -23,63 +23,61 @@ function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
-function StudentDashboard() {
-  const [student, setStudent] = useState(null);
-  const [teams, setTeams] = useState([]);
-  const [error, setError] = useState(null);
+const PeerRating = () => {
+  const { teamId, studentId } = useParams(); // Get teamId and studentId from the URL
+  const location = useLocation();
   const navigate = useNavigate();
+  const { teammate } = location.state || {}; // Access teammate from state
+
+  const [cooperation, setCooperation] = useState('');
+  const [comment, setComment] = useState('');
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchStudentData = async () => {
-      try {
-        const token = localStorage.getItem('token'); // Retrieve token from local storage
-        const response = await axios.get('http://localhost:5001/student/me', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setStudent(response.data);
-      } catch (error) {
-        console.error('Error fetching student data', error);
-        setError('Failed to load student data. Please try again later.');
-      }
-    };
+    console.log("teamId:", teamId); // Ensure teamId is correctly retrieved
+    console.log("studentId:", studentId); // Ensure studentId is correctly retrieved
+  }, [teamId, studentId]);
 
-    fetchStudentData();
-  }, []);
-
-  useEffect(() => {
-    const fetchTeams = async () => {
-      try {
-        const token = localStorage.getItem('token'); // Retrieve token from local storage
-        const response = await axios.get('http://localhost:5001/student/teams', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTeams(response.data);
-      } catch (error) {
-        console.error('Error fetching teams', error);
-        setError('Failed to load teams. Please try again later.');
-      }
-    };
-
-    if (student) {
-      fetchTeams();
+  const submitRating = async () => {
+    if (!cooperation || cooperation < 1 || cooperation > 5) {
+      setError('Please select a valid cooperation rating (1-5).');
+      return;
     }
-  }, [student]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token'); // Clear token from local storage
-    navigate('/login'); // Redirect to login page
-  };
-
-  const handleSelectTeam = (team) => {
-    // Navigate to the team evaluation page and pass the team object via state
-    navigate(`/Team_Evaluation/${team._id}`, { state: { team } });
+  
+    if (!comment) {
+      setError('Please enter a comment.');
+      return;
+    }
+  
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No token found');
+      }
+  
+      const response = await axios.post(
+        `http://localhost:5001/teams/${teamId}/ratings`,
+        { rateeId: studentId, cooperation, comment },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+  
+      console.log('Response:', response); // Debugging response
+  
+      navigate('/Confirm_Submission');
+    } catch (error) {
+      console.error('Error:', error); // Print the full error object
+      if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+        console.error('Response headers:', error.response.headers);
+      } else {
+        console.error('Error message:', error.message);
+      }
+      setError('Failed to submit rating. Please try again.');
+    }
   };
 
   if (error) return <p>{error}</p>;
-  if (!student) return <p>Loading...</p>;
-
-  if (error) return <p>{error}</p>;
-  if (!student) return <p>Loading...</p>;
 
   return (
     <>
@@ -91,7 +89,11 @@ function StudentDashboard() {
                 <div className="flex h-16 items-center justify-between">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
-                      <img alt="Your Company" src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500" className="h-8 w-8" />
+                      <img
+                        alt="Your Company"
+                        src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=500"
+                        className="h-8 w-8"
+                      />
                     </div>
                     <div className="hidden md:block">
                       <div className="ml-10 flex items-baseline space-x-4">
@@ -122,7 +124,6 @@ function StudentDashboard() {
                         <BellIcon className="h-6 w-6" aria-hidden="true" />
                       </button>
 
-                      {/* Profile dropdown */}
                       <Menu as="div" className="relative ml-3">
                         <div>
                           <Menu.Button className="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
@@ -162,7 +163,10 @@ function StudentDashboard() {
                             <Menu.Item>
                               {({ active }) => (
                                 <button
-                                  onClick={handleLogout}
+                                  onClick={() => {
+                                    localStorage.removeItem('token');
+                                    navigate('/login');
+                                  }}
                                   className={classNames(
                                     active ? 'bg-gray-100' : '',
                                     'block px-4 py-2 text-sm text-gray-700 w-full text-left'
@@ -178,7 +182,6 @@ function StudentDashboard() {
                     </div>
                   </div>
                   <div className="-mr-2 flex md:hidden">
-                    {/* Mobile menu button */}
                     <Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                       <span className="sr-only">Open main menu</span>
                       {open ? (
@@ -224,25 +227,6 @@ function StudentDashboard() {
                       <BellIcon className="h-6 w-6" aria-hidden="true" />
                     </button>
                   </div>
-                  <div className="mt-3 space-y-1 px-2">
-                    {userNavigation.map((item) => (
-                      <Disclosure.Button
-                        key={item.name}
-                        as="a"
-                        href={item.href}
-                        className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
-                      >
-                        {item.name}
-                      </Disclosure.Button>
-                    ))}
-                    <Disclosure.Button
-                      as="button"
-                      onClick={handleLogout}
-                      className="block rounded-md px-3 py-2 text-base font-medium text-gray-400 hover:bg-gray-700 hover:text-white"
-                    >
-                      Sign out
-                    </Disclosure.Button>
-                  </div>
                 </div>
               </Disclosure.Panel>
             </>
@@ -251,42 +235,66 @@ function StudentDashboard() {
 
         <header className="bg-white shadow">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Student's Dashboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              Team Cooperation Evaluation
+            </h1>
           </div>
         </header>
 
-        <main>
+        <main className="ml-0">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1>Welcome, {student.firstName} {student.lastName}</h1>
-            <p>Email: {student.email}</p>
-            <p>Role: {student.role}</p>
+            <div className="w-full flex flex-col">
+              <div className="mt-6 w-1/2">
+                <div className="mb-4">
+                  <h2 className="text-3xl font-bold mb-4">
+                    Rate {teammate ? `${teammate.firstName} ${teammate.lastName}` : 'Teammate'}:
+                  </h2>
+                  <br />
+                  <label htmlFor="cooperation" className="block text-lg font-medium text-gray-900">
+                    Cooperation Rating (1-5):
+                  </label>
+                  <select
+                    id="cooperation"
+                    value={cooperation}
+                    onChange={(e) => setCooperation(e.target.value)}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  >
+                    <option value="" disabled>--Select a rating--</option>
+                    <option value="1">1 - Poor</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="3">3 - Good</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="5">5 - Excellent</option>
+                  </select>
+                </div>
+                <br />
+                <div className="mb-4">
+                  <label htmlFor="comment" className="block text-lg font-medium text-gray-900">
+                    Comments:
+                  </label>
+                  <textarea
+                    id="comment"
+                    rows="4"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                    placeholder="Add your feedback here"
+                  />
+                </div>
 
-            <h2 className="mt-6 text-2xl font-semibold">Your Teams</h2>
-            <ul className="mt-4">
-              {teams.length > 0 ? (
-                teams.map((team) => (
-                  <li key={team._id} className="flex justify-between items-center p-4 border-b border-gray-200">
-                    <div>
-                      <h3 className="text-lg font-medium">{team.name}</h3>
-                      <p className="text-sm">Members: {team.students.map((s) => `${s.firstName} ${s.lastName}`).join(', ')}</p>
-                    </div>
-                    <button 
-                      onClick={() => handleSelectTeam(team)}
-                      className="flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-lg transform transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105 mt-4"
-                      >
-                      Select Team
-                    </button>
-                  </li>
-                ))
-              ) : (
-                <p>No teams found.</p>
-              )}
-            </ul>
+
+                <button
+                  onClick={submitRating}
+                  className="inline-flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-lg transform transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105">
+                  Submit Rating
+                </button>
+              </div>
+            </div>
           </div>
         </main>
       </div>
     </>
   );
-}
+};
 
-export default StudentDashboard;
+export default PeerRating;
