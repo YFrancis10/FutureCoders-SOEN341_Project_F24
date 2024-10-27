@@ -36,6 +36,9 @@ const App = () => {
         <Route path="/Teacher_Dashboard" element={<TeacherDashboard />} />
         <Route path="/Team_Evaluation/:id" element={<TeamEvaluation />} />
         <Route path="/Cooperation" element={<Cooperation />} />
+        <Route path="/Conceptual_Contribution" element={<ConceptualContribution />} />
+        <Route path="/Practical_Contribution" element={<PracticalContribution />} />
+        <Route path="/WorkEthic" element={<WorkEthic />} />
         <Route path="/PeerRating/:teamId/:studentId" element={<PeerRating />} />
         <Route path="/Teams" element={<Teams />} /> {/* Ensure this route exists */}
         <Route path="/ConfirmSubmission" element={<ConfirmSubmission />} />
