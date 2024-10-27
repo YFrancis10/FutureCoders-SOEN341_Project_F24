@@ -57,22 +57,52 @@ const TeamEvaluation = () => {
       return;
     }
   
-    // Use switch to handle routing based on evaluation type
+    // Assuming teamId is available from the team object
+    const teamId = team._id; // Update this line based on how you're getting teamId
+  
     switch (evaluationType) {
       case 'Type1': // Cooperation
-        navigate('/Cooperation', { state: { selectedTeammates, teamName: team.name, evaluationType } });
+        navigate('/Cooperation', { 
+          state: { 
+            selectedTeammates, 
+            teamName: team.name, 
+            teamId, // Include teamId here
+            evaluationType 
+          } 
+        });
         break;
-      
+  
       case 'Type2': // Conceptual Contribution
-        navigate('/Conceptual_Contribution', { state: { selectedTeammates, teamName: team.name, evaluationType } });
+        navigate('/Conceptual_Contribution', { 
+          state: { 
+            selectedTeammates, 
+            teamName: team.name, 
+            teamId, // Include teamId here
+            evaluationType 
+          } 
+        });
         break;
   
       case 'Type3': // Practical Contribution
-        navigate('/Practical_Contribution', { state: { selectedTeammates, teamName: team.name, evaluationType } });
+        navigate('/Practical_Contribution', { 
+          state: { 
+            selectedTeammates, 
+            teamName: team.name, 
+            teamId, // Include teamId here
+            evaluationType 
+          } 
+        });
         break;
   
       case 'Type4': // Work Ethic
-        navigate('/Work_Ethic', { state: { selectedTeammates, teamName: team.name, evaluationType } });
+        navigate('/Work_Ethic', { 
+          state: { 
+            selectedTeammates, 
+            teamName: team.name, 
+            teamId, // Include teamId here
+            evaluationType 
+          } 
+        });
         break;
   
       default:
@@ -80,6 +110,7 @@ const TeamEvaluation = () => {
         break;
     }
   };
+  
   
   
   return (

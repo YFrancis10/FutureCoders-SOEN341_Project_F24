@@ -8,7 +8,7 @@ import TeamEvaluation from './Team_Evaluation';
 import Teams from './Teams';
 import Cooperation from './Cooperation';
 import PeerRating from './PeerRating';
-//import ConfirmSubmission from './Confirm_Submission';
+import ConfirmSubmission from './ConfirmSubmission';
 
 
 const App = () => {
@@ -38,6 +38,7 @@ const App = () => {
         <Route path="/Cooperation" element={<Cooperation />} />
         <Route path="/PeerRating/:teamId/:studentId" element={<PeerRating />} />
         <Route path="/Teams" element={<Teams />} /> {/* Ensure this route exists */}
+        <Route path="/ConfirmSubmission" element={<ConfirmSubmission />} />
         <Route path="/" element={<Login />} />  {/* Redirect root to login */}
       </Routes>
     </Router>

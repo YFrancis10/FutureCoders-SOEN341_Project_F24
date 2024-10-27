@@ -63,7 +63,7 @@ const PeerRating = () => {
   
       console.log('Response:', response); // Debugging response
   
-      navigate('/Confirm_Submission');
+      navigate('/ConfirmSubmission');
     } catch (error) {
       console.error('Error:', error); // Print the full error object
       if (error.response) {

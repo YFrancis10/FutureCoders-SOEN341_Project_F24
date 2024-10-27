@@ -264,9 +264,62 @@ app.get('/students/:studentId', verifyToken, async (req, res) => {
   }
 });
 // Route to submit a peer rating with comment
+// app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
+//   const { teamId } = req.params;
+//   const { rateeId, cooperation, comment } = req.body;
+
+//   // Validate cooperation rating
+//   if (cooperation < 1 || cooperation > 5) {
+//     return res.status(400).json({ message: 'Invalid rating value. It must be between 1 and 5.' });
+//   }
+
+//   try {
+//     const team = await teamModel.findById(teamId).populate('students');
+//     if (!team) {
+//       return res.status(404).json({ message: 'Team not found.' });
+//     }
+
+//     const isRaterInTeam = team.students.some(student => student._id.equals(req.user.id));
+//     const isRateeInTeam = team.students.some(student => student._id.equals(rateeId));
+
+//     if (!isRaterInTeam || !isRateeInTeam) {
+//       return res.status(403).json({ message: 'Both the rater and ratee must be part of the same team.' });
+//     }
+
+//     const newRating = new peerRatingModel({
+//       rater: req.user.id,
+//       ratee: rateeId,
+//       cooperation,
+//       comment,
+//       team: teamId
+//     });
+
+//     await newRating.save();
+//     res.status(200).json({ success: true, message: 'Rating submitted successfully!' });
+//   } catch (error) {
+//     console.error('Error submitting peer rating:', error);
+//     res.status(500).json({ success: false, message: 'Internal Server Error' });
+//   }
+// });
+
 app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
-  const { teamId } = req.params;
+  const { teamId } = req.params; // Extract teamId from the request parameters
   const { rateeId, cooperation, comment } = req.body;
+
+  // Add debugging logs
+  console.log('Request Body:', req.body);
+  console.log('User ID:', req.user.id);
+  console.log('Team ID from params:', teamId); // Log the teamId
+  console.log('Ratee ID:', rateeId);
+  console.log('Cooperation:', cooperation);
+
+  // Validate incoming teamId and rateeId
+  if (!teamId) {
+    return res.status(400).json({ message: 'Missing team ID' });
+  }
+  if (!rateeId) {
+    return res.status(400).json({ message: 'Missing ratee ID' });
+  }
 
   // Validate cooperation rating
   if (cooperation < 1 || cooperation > 5) {
@@ -301,6 +354,7 @@ app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
     res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
+
 
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
