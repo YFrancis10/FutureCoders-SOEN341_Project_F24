@@ -4,7 +4,11 @@ import Signup from './Signup';
 import Login from './Login';
 import StudentDashboard from './Student_Dashboard'; 
 import TeacherDashboard from './Teacher_Dashboard';
+import TeamEvaluation from './Team_Evaluation';
 import Teams from './Teams';
+import Cooperation from './Cooperation';
+import PeerRating from './PeerRating';
+//import ConfirmSubmission from './Confirm_Submission';
 
 
 const App = () => {
@@ -30,6 +34,9 @@ const App = () => {
         <Route path="/Login" element={<Login />} />
         <Route path="/Student_Dashboard" element={<StudentDashboard />} />
         <Route path="/Teacher_Dashboard" element={<TeacherDashboard />} />
+        <Route path="/Team_Evaluation/:id" element={<TeamEvaluation />} />
+        <Route path="/Cooperation" element={<Cooperation />} />
+        <Route path="/PeerRating/:teamId/:studentId" element={<PeerRating />} />
         <Route path="/Teams" element={<Teams />} /> {/* Ensure this route exists */}
         <Route path="/" element={<Login />} />  {/* Redirect root to login */}
       </Routes>
