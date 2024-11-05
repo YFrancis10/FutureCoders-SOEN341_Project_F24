@@ -35,8 +35,10 @@ const studentSchema = new mongoose.Schema({
   lastName: String,
   email: String,
   password: String,
-  role: { type: String, default: 'student' }
+  role: { type: String, default: 'student' },
+  studentID: { type: Number, unique: true } // New field for the 8-digit student ID
 });
+
 
 const studentModel = mongoose.model("Student", studentSchema);
 
@@ -83,30 +85,46 @@ const peerRatingSchema = new mongoose.Schema({
 // Create the PeerRating model
 const peerRatingModel = mongoose.model('PeerRating', peerRatingSchema);
 
-// Route to handle sign-up requests
+
+// To generate random ID
+// Function to generate a unique 8-digit ID between 40000000 and 50000000
+const generateUniqueStudentID = async () => {
+  let studentID;
+  let existingStudent;
+
+  do {
+    studentID = Math.floor(Math.random() * (50000000 - 40000000) + 40000000);
+    existingStudent = await studentModel.findOne({ studentID });
+  } while (existingStudent);
+
+  return studentID;
+};
+
 app.post('/Signup', async (req, res) => {
   const { firstName, lastName, email, password, role } = req.body;
 
-  // Check if all required fields are present
   if (!firstName || !lastName || !email || !password || !role) {
     return res.status(400).json({ success: false, message: 'All fields are required.' });
   }
 
   try {
-    // Check if the email already exists in the database
+    // Check if the email already exists
     let user = await studentModel.findOne({ email }) || await teacherModel.findOne({ email });
     if (user) {
       return res.status(400).json({ success: false, message: 'Email already exists. Please use a different email.' });
     }
 
+    // Generate the unique student ID
+    const studentID = await generateUniqueStudentID();
+
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Save user to MongoDB based on role
+    // Save user to MongoDB with student ID if they are a student
     if (role === 'teacher') {
       user = new teacherModel({ firstName, lastName, email, password: hashedPassword, role });
     } else {
-      user = new studentModel({ firstName, lastName, email, password: hashedPassword, role });
+      user = new studentModel({ firstName, lastName, email, password: hashedPassword, role, studentID });
     }
 
     await user.save();
@@ -117,6 +135,8 @@ app.post('/Signup', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal Server Error' });
   }
 });
+
+
 
 // Route to handle login requests
 app.post('/Login', async (req, res) => {
