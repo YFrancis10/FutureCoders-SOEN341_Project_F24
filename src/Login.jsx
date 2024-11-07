@@ -63,22 +63,28 @@ const Login = () => {
               required
             />
           </div>
+          {/* Login Button */}
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
+            className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hover:scale-105 shadow-md hover:shadow-lg transition-transform duration-300"
           >
             Log In
           </button>
         </form>
 
-        {/* Feedback message */}
-        {message && <p className="mt-4 text-center text-red-600">{message}</p>} 
+        {/* Feedback message with conditional styling */}
+        {message && (
+          <div className={`mt-4 text-center ${message.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
+            {message.type === 'error' ? '⚠️ ' : '✅ '}
+            {message.text}
+          </div>
+        )}
 
         {/* Navigation link */}
         <p className="mt-4 text-center text-gray-600">
           Don't have an account?{' '}
           <span
-            className="text-blue-600 cursor-pointer hover:underline"
+            className="text-blue-600 cursor-pointer hover:underline transition duration-200 ease-in-out"
             onClick={() => navigate('/Signup')}
           >
             Sign Up
