@@ -1,46 +1,56 @@
 import React from 'react';
-<<<<<<< HEAD
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './Home';
-import RoleSelection from './RoleSelection';
-import Teacher_login from './Teacher_login';
-import Student_login from './Student_login';
-import SignUp from './SignUp';
-import Teacher_dashboard from './Teacher_dashboard';
-import Student_dashboard from './Student_dashboard';
-import Teams from './Teams';
-=======
 import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
 import Signup from './Signup';
 import Login from './Login';
 import StudentDashboard from './Student_Dashboard'; 
 import TeacherDashboard from './Teacher_Dashboard';
+import TeamEvaluation from './Team_Evaluation';
+import Teams from './Teams';
+import Cooperation from './Cooperation';
+import PeerRating from './PeerRating';
+import ConfirmSubmission from './ConfirmSubmission';
+import ConceptualContribution from './ConceptualContribution';
+import PracticalContribution from './PracticalContribution';
+import WorkEthic from './WorkEthic';
+import Summary from './Summary';
 
->>>>>>> 793edd40440d7f829c70c6d8f3dba845f31f6572
 
-function App() {
+const App = () => {
   return (
     <Router>
+        <div className="flex justify-center mt-0 space-x-4">
+        <a
+          href="/login"
+          className="rounded-md bg-blue-700 text-white px-4 py-2 text-sm font-medium transition-transform hover:scale-105"
+        >
+          Log In
+        </a>
+        <a
+          href="/signup"
+          className="rounded-md bg-blue-500 text-white px-4 py-2 text-sm font-medium transition-transform hover:scale-105"
+        >
+          Sign Up
+        </a>
+      </div>
+
       <Routes>
-<<<<<<< HEAD
-        <Route path="/" element={<Home />} />
-        <Route path="/role-selection" element={<RoleSelection />} />
-        <Route path="/sign-up" element={<SignUp />} />
-        <Route path="/teacher-login" element={<Teacher_login />} />
-        <Route path="/student-login" element={<Student_login />} />
-        <Route path="/teacher-dashboard" element={<Teacher_dashboard />} />
-        <Route path="/student-dashboard" element={<Student_dashboard />} />
-        <Route path="/teams" element={<Teams />} />
-=======
         <Route path="/Signup" element={<Signup />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/Student_Dashboard" element={<StudentDashboard />} />
         <Route path="/Teacher_Dashboard" element={<TeacherDashboard />} />
+        <Route path="/Team_Evaluation/:id" element={<TeamEvaluation />} />
+        <Route path="/Cooperation" element={<Cooperation />} />
+        <Route path="/PeerRating/:teamId/:studentId" element={<PeerRating />} />
+        <Route path="/Teams" element={<Teams />} /> {/* Ensure this route exists */}
+        <Route path="/ConfirmSubmission" element={<ConfirmSubmission />} />
+        <Route path="/Conceptual_Contribution" element={<ConceptualContribution />} />
+        <Route path="/Practical_Contribution" element={<PracticalContribution />} />
+        <Route path="/Work_Ethic" element={<WorkEthic />} />
+        <Route path="/summary/:teamId" element={<Summary />} />
         <Route path="/" element={<Login />} />  {/* Redirect root to login */}
->>>>>>> 793edd40440d7f829c70c6d8f3dba845f31f6572
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;
