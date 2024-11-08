@@ -90,6 +90,22 @@ const peerRatingSchema = new mongoose.Schema({
 // Create the PeerRating model
 const peerRatingModel = mongoose.model('PeerRating', peerRatingSchema);
 
+// Study Room Schema
+const studyRoomSchema = new mongoose.Schema({
+  roomName: {type: String, required: true},
+  capacity: Number,
+  bookedSlots: [
+    {
+      team: {type: mongoose.Schema.Types.ObjectId, ref: 'Teams'},
+      startTime: Date,
+      endTime: Date,
+    },
+  ],
+});
+
+const studyRoomModel = mongoose.model('StudyRoom', studyRoomSchema);
+
+
 // To generate random ID
 // Function to generate a unique 8-digit ID between 40000000 and 50000000
 const generateUniqueStudentID = async () => {
