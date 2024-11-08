@@ -454,6 +454,36 @@ app.get('/study-rooms/avalaible', verifyToken, async(req, res) => {
   }
 });
 
+app.post('/study-rooms/:roomId/book', verifyToken, async(req, res) => {
+  const { roomId } = req.params;
+  const { startTime, endTime } = req.body;
+
+  try{
+    const room = await studyRoomModel.findById(roomId);
+
+    if(!room) return res.status(404).json({message: 'Room not found'});
+
+    const hasConflict = room.bookedSlots.some(slot => 
+      (new Date(slot.startTime) < new Date(endTime) && new Date(slot.endTime) > new Date(startTime)));
+
+      if(hasConflict){
+        return res.status(400).json({message: 'Room is already booked for this time'});
+      }
+
+      room.bookedSlots.push({
+        team: req.user.id,
+        startTime,
+        endTime,
+      });
+      await room.save();
+
+      res.status(200).json({success: true, message: 'Room booked successfully'});
+  } catch (error){
+    console.error('Error booking room:', error);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
+})
+
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
