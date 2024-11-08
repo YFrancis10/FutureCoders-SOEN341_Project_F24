@@ -78,9 +78,6 @@ function StudentDashboard() {
   if (error) return <p>{error}</p>;
   if (!student) return <p>Loading...</p>;
 
-  if (error) return <p>{error}</p>;
-  if (!student) return <p>Loading...</p>;
-
   return (
     <>
       <div className="min-h-full">
@@ -260,28 +257,42 @@ function StudentDashboard() {
             <h1>Welcome, {student.firstName} {student.lastName}</h1>
             <p>Email: {student.email}</p>
             <p>Role: {student.role}</p>
+            <p>Student ID: {student.studentID}</p>
 
             <h2 className="mt-6 text-2xl font-semibold">Your Teams</h2>
-            <ul className="mt-4">
+            <div className="mt-4 space-y-4">
               {teams.length > 0 ? (
                 teams.map((team) => (
-                  <li key={team._id} className="flex justify-between items-center p-4 border-b border-gray-200">
-                    <div>
-                      <h3 className="text-lg font-medium">{team.name}</h3>
-                      <p className="text-sm">Members: {team.students.map((s) => `${s.firstName} ${s.lastName}`).join(', ')}</p>
-                    </div>
-                    <button 
-                      onClick={() => handleSelectTeam(team)}
-                      className="flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-lg transform transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105 mt-4"
+                  <div key={team._id} className="bg-gray-100 p-4 rounded-lg shadow-md border border-gray-200 hover:bg-gray-200 transition duration-150 ease-in-out">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="text-lg font-semibold">{team.name}</h3>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Students: 
+                          {team.students.length > 0 ? (
+                            <ul className="list-disc list-inside ml-4 mt-1">
+                              {team.students.map((s) => (
+                                <li key={s._id} className="text-gray-700">{s.firstName} {s.lastName}</li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <span className="text-gray-500"> No students in this team.</span>
+                          )}
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => handleSelectTeam(team)}
+                        className="flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-sm font-medium transform transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105"
                       >
-                      Select Team
-                    </button>
-                  </li>
+                        Select Team
+                      </button>
+                    </div>
+                  </div>
                 ))
               ) : (
                 <p>No teams found.</p>
               )}
-            </ul>
+            </div>
           </div>
         </main>
       </div>

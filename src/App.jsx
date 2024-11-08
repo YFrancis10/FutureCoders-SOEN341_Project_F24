@@ -8,10 +8,13 @@ import TeamEvaluation from './Team_Evaluation';
 import Teams from './Teams';
 import Cooperation from './Cooperation';
 import PeerRating from './PeerRating';
-import ConfirmSubmission from './ConfirmSubmission';
+import PeerRating2 from './PeerRating2'; // Import PeerRating2
+import PeerRating3 from './PeerRating3'; // Import PeerRating3
+import PeerRating4 from './PeerRating4'; // Import PeerRating4
 import ConceptualContribution from './ConceptualContribution';
 import PracticalContribution from './PracticalContribution';
 import WorkEthic from './WorkEthic';
+import Summary from './Summary';
 
 
 const App = () => {
@@ -40,11 +43,14 @@ const App = () => {
         <Route path="/Team_Evaluation/:id" element={<TeamEvaluation />} />
         <Route path="/Cooperation" element={<Cooperation />} />
         <Route path="/PeerRating/:teamId/:studentId" element={<PeerRating />} />
+        <Route path="/PeerRating2/:teamId/:studentId" element={<PeerRating2 />} /> {/* New route for PeerRating2 */}
+        <Route path="/PeerRating3/:teamId/:studentId" element={<PeerRating3 />} />
+        <Route path="/PeerRating4/:teamId/:studentId" element={<PeerRating4 />} />
         <Route path="/Teams" element={<Teams />} /> {/* Ensure this route exists */}
-        <Route path="/ConfirmSubmission" element={<ConfirmSubmission />} />
         <Route path="/Conceptual_Contribution" element={<ConceptualContribution />} />
         <Route path="/Practical_Contribution" element={<PracticalContribution />} />
         <Route path="/Work_Ethic" element={<WorkEthic />} />
+        <Route path="/summary/:teamId" element={<Summary />} />
         <Route path="/" element={<Login />} />  {/* Redirect root to login */}
       </Routes>
     </Router>

@@ -168,7 +168,11 @@ const Cooperation = () => {
                 ))}
               </ul>
             ) : (
-              <p>All teammates have been rated!</p>
+              <div className="flex flex-col items-center justify-center text-center mt-8 bg-gray-100 p-6 border border-gray-200 rounded-lg shadow-lg max-w-xl mx-auto">
+                <h3 className="text-2xl font-bold mb-2">Submission Confirmed!</h3>
+                <p className="text-lg">All teammates have been rated!</p>
+                <p className="text-lg">Thank you for submitting your cooperation peer assessment.</p>
+              </div>
             )}
             <button onClick={handleGoBack} className="mt-6 inline-flex items-center justify-center rounded-md bg-gray-200 text-black px-4 py-2 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-transform transform hover:scale-105">Go Back to Student Dashboard page</button>
           </div>

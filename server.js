@@ -35,7 +35,8 @@ const studentSchema = new mongoose.Schema({
   lastName: String,
   email: String,
   password: String,
-  role: { type: String, default: 'student' }
+  role: { type: String, default: 'student' },
+  studentID: { type: Number, unique: true } // New field for the 8-digit student ID
 });
 
 const studentModel = mongoose.model("Student", studentSchema);
@@ -73,15 +74,71 @@ const verifyToken = (req, res, next) => {
 };
 // Peer Rating Schema
 const peerRatingSchema = new mongoose.Schema({
-  rater: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true }, // The student who is giving the rating
-  ratee: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true }, // The student being rated
-  cooperation: { type: Number, required: true, min: 1, max: 5 },   // Rating for cooperation (1-5)
-  comment: { type: String },                                        // Optional comment
-  team: { type: mongoose.Schema.Types.ObjectId, ref: 'Teams', required: true }      // The team for context
+  rater: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
+  ratee: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
+  team: { type: mongoose.Schema.Types.ObjectId, ref: 'Teams', required: true },
+  
+  // Optional fields for each evaluation dimension
+  cooperation: { type: Number, min: 1, max: 5 },
+  conceptualContribution: { type: Number, min: 1, max: 5 },
+  practicalContribution: { type: Number, min: 1, max: 5 },
+  workEthic: { type: Number, min: 1, max: 5 },
+
+  comment: { type: String }
 }, { timestamps: true });
 
 // Create the PeerRating model
 const peerRatingModel = mongoose.model('PeerRating', peerRatingSchema);
+
+// To generate random ID
+// Function to generate a unique 8-digit ID between 40000000 and 50000000
+const generateUniqueStudentID = async () => {
+  let studentID;
+  let existingStudent;
+
+  do {
+    studentID = Math.floor(Math.random() * (50000000 - 40000000) + 40000000);
+    existingStudent = await studentModel.findOne({ studentID });
+  } while (existingStudent);
+
+  return studentID;
+};
+
+app.post('/Signup', async (req, res) => {
+  const { firstName, lastName, email, password, role } = req.body;
+
+  if (!firstName || !lastName || !email || !password || !role) {
+    return res.status(400).json({ success: false, message: 'All fields are required.' });
+  }
+
+  try {
+    // Check if the email already exists
+    let user = await studentModel.findOne({ email }) || await teacherModel.findOne({ email });
+    if (user) {
+      return res.status(400).json({ success: false, message: 'Email already exists. Please use a different email.' });
+    }
+
+    // Generate the unique student ID
+    const studentID = await generateUniqueStudentID();
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Save user to MongoDB with student ID if they are a student
+    if (role === 'teacher') {
+      user = new teacherModel({ firstName, lastName, email, password: hashedPassword, role });
+    } else {
+      user = new studentModel({ firstName, lastName, email, password: hashedPassword, role, studentID });
+    }
+
+    await user.save();
+    res.status(200).json({ success: true, message: 'User signed up and saved to the database!' });
+
+  } catch (error) {
+    console.error('Error during sign-up process:', error);
+    return res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
 
 // Route to handle sign-up requests
 app.post('/Signup', async (req, res) => {
@@ -181,22 +238,6 @@ app.get('/teacher/me', verifyToken, async (req, res) => {
 });
 
 // Route to get teams for a teacher
-// app.get('/teacher/teams', verifyToken, async (req, res) => {
-//   try {
-//     const teacherId = req.user.id; // Assuming you're using middleware to get the logged-in user
-//     const teams = await teamModel.find({ teacher: teacherId }); // Fetch teams associated with the teacher
-//     const teamsResponse = teams.map(team => ({
-//       id: team._id,
-//       name: team.name
-//     }));
-//     res.json(teamsResponse);
-//   } catch (error) {
-//     console.error('Error fetching teams:', error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// });
-
-// Route to get teams for a teacher
 app.get('/teacher/teams', verifyToken, async (req, res) => {
   try {
     const teacherId = req.user.id; // Assuming you're using middleware to get the logged-in user
@@ -235,6 +276,29 @@ app.post('/teams', verifyToken, async (req, res) => {
   }
 });
 
+// Route to delete a team
+app.delete('/teams/:teamId', verifyToken, async (req, res) => {
+  const { teamId } = req.params;
+
+  try {
+    const team = await teamModel.findById(teamId);
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Verify that the requesting user is the teacher of the team
+    if (!team.teacher.equals(req.user.id)) {
+      return res.status(403).json({ message: 'You are not authorized to delete this team' });
+    }
+
+    // Delete the team
+    await teamModel.findByIdAndDelete(teamId);
+    res.status(200).json({ success: true, message: 'Team deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting team:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
 
 app.get('/student/teams', verifyToken, async (req, res) => {
   try {
@@ -263,74 +327,22 @@ app.get('/students/:studentId', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
-// Route to submit a peer rating with comment
-// app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
-//   const { teamId } = req.params;
-//   const { rateeId, cooperation, comment } = req.body;
-
-//   // Validate cooperation rating
-//   if (cooperation < 1 || cooperation > 5) {
-//     return res.status(400).json({ message: 'Invalid rating value. It must be between 1 and 5.' });
-//   }
-
-//   try {
-//     const team = await teamModel.findById(teamId).populate('students');
-//     if (!team) {
-//       return res.status(404).json({ message: 'Team not found.' });
-//     }
-
-//     const isRaterInTeam = team.students.some(student => student._id.equals(req.user.id));
-//     const isRateeInTeam = team.students.some(student => student._id.equals(rateeId));
-
-//     if (!isRaterInTeam || !isRateeInTeam) {
-//       return res.status(403).json({ message: 'Both the rater and ratee must be part of the same team.' });
-//     }
-
-//     const newRating = new peerRatingModel({
-//       rater: req.user.id,
-//       ratee: rateeId,
-//       cooperation,
-//       comment,
-//       team: teamId
-//     });
-
-//     await newRating.save();
-//     res.status(200).json({ success: true, message: 'Rating submitted successfully!' });
-//   } catch (error) {
-//     console.error('Error submitting peer rating:', error);
-//     res.status(500).json({ success: false, message: 'Internal Server Error' });
-//   }
-// });
 
 app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
-  const { teamId } = req.params; // Extract teamId from the request parameters
-  const { rateeId, cooperation, comment } = req.body;
+  const { teamId } = req.params;
+  const { rateeId, cooperation, conceptualContribution, practicalContribution, workEthic, comment } = req.body;
 
-  // Add debugging logs
-  console.log('Request Body:', req.body);
-  console.log('User ID:', req.user.id);
-  console.log('Team ID from params:', teamId); // Log the teamId
-  console.log('Ratee ID:', rateeId);
-  console.log('Cooperation:', cooperation);
+  // Ensure only one evaluation field is present
+  const evaluationFields = { cooperation, conceptualContribution, practicalContribution, workEthic };
+  const specifiedFields = Object.entries(evaluationFields).filter(([key, value]) => value !== undefined);
 
-  // Validate incoming teamId and rateeId
-  if (!teamId) {
-    return res.status(400).json({ message: 'Missing team ID' });
-  }
-  if (!rateeId) {
-    return res.status(400).json({ message: 'Missing ratee ID' });
-  }
-
-  // Validate cooperation rating
-  if (cooperation < 1 || cooperation > 5) {
-    return res.status(400).json({ message: 'Invalid rating value. It must be between 1 and 5.' });
+  if (specifiedFields.length !== 1) {
+    return res.status(400).json({ message: 'Only one evaluation type must be specified per request.' });
   }
 
   try {
     const team = await teamModel.findById(teamId).populate('students');
-    if (!team) {
-      return res.status(404).json({ message: 'Team not found.' });
-    }
+    if (!team) return res.status(404).json({ message: 'Team not found.' });
 
     const isRaterInTeam = team.students.some(student => student._id.equals(req.user.id));
     const isRateeInTeam = team.students.some(student => student._id.equals(rateeId));
@@ -339,14 +351,17 @@ app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Both the rater and ratee must be part of the same team.' });
     }
 
-    const newRating = new peerRatingModel({
+    const newRatingData = {
       rater: req.user.id,
       ratee: rateeId,
-      cooperation,
-      comment,
-      team: teamId
-    });
+      team: teamId,
+      comment
+    };
 
+    // Add only the specified evaluation field to the newRatingData object
+    newRatingData[specifiedFields[0][0]] = specifiedFields[0][1];
+
+    const newRating = new peerRatingModel(newRatingData);
     await newRating.save();
     res.status(200).json({ success: true, message: 'Rating submitted successfully!' });
   } catch (error) {
@@ -355,6 +370,48 @@ app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
   }
 });
 
+// Endpoint to fetch ratings summary for a team
+app.get('/teams/:teamId/ratings', verifyToken, async (req, res) => {
+  try {
+    const { teamId } = req.params;
+    const team = await teamModel.findById(teamId).populate('students', 'firstName lastName studentID');
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+
+    // Fetch ratings for each student in the team
+    const ratings = await peerRatingModel.find({ team: teamId });
+    
+    const summary = team.students.map(student => {
+      const studentRatings = ratings.filter(rating => rating.ratee.equals(student._id));
+      const peersWhoResponded = studentRatings.length;
+      
+      if (peersWhoResponded === 0) return { ...student._doc, average: 0, peersWhoResponded: 0 };
+
+      const cooperation = (studentRatings.reduce((sum, r) => sum + (r.cooperation || 0), 0) / peersWhoResponded) || 0;
+      const conceptualContribution = (studentRatings.reduce((sum, r) => sum + (r.conceptualContribution || 0), 0) / peersWhoResponded) || 0;
+      const practicalContribution = (studentRatings.reduce((sum, r) => sum + (r.practicalContribution || 0), 0) / peersWhoResponded) || 0;
+      const workEthic = (studentRatings.reduce((sum, r) => sum + (r.workEthic || 0), 0) / peersWhoResponded) || 0;
+      const average = (cooperation + conceptualContribution + practicalContribution + workEthic) / 4;
+
+      return {
+        studentID: student.studentID,
+        lastName: student.lastName,
+        firstName: student.firstName,
+        team: team.name,
+        cooperation,
+        conceptualContribution,
+        practicalContribution,
+        workEthic,
+        average,
+        peersWhoResponded
+      };
+    });
+
+    res.json(summary);
+  } catch (error) {
+    console.error('Error fetching team ratings:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
