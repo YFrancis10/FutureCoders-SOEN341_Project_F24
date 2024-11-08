@@ -429,6 +429,31 @@ app.get('/teams/:teamId/ratings', verifyToken, async (req, res) => {
   }
 });
 
+// Endpoint to get avalaible study rooms
+app.get('/study-rooms/avalaible', verifyToken, async(req, res) => {
+  const {startTime, endTime} = req.query;
+
+  try{
+    const avalaibleRooms = await studyRoomModel.find({
+      bookedSlots: {
+        $not:{
+          $elemMatch:{
+            $or:[
+              {startTime: {$lt: endTime, $gte: startTime}},
+              {endTime: {$gt: startTime, $lte: endTime}},
+            ],
+          },
+        },
+      },
+    });
+
+    res.json(avalaibleRooms);
+  } catch(error) {
+    console.error('Error fetching avalaible rooms:', error);
+    res.status(500).json({message: 'Internal Server Error'});
+  }
+});
+
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
