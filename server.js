@@ -443,7 +443,7 @@ app.get('/study-rooms', verifyToken, async (req, res) => {
 
 // Endpoint to fetch all rooms
 app.post('/book-room', verifyToken, async (req, res) => {
-  const { roomId, date, startTime, endTime } = req.body;
+  const { roomId, date, startTime, endTime, meetingName, attendees } = req.body;
 
   try {
     const room = await studyRoomModel.findById(roomId);
@@ -462,12 +462,14 @@ app.post('/book-room', verifyToken, async (req, res) => {
       return res.status(400).json({ message: 'This time slot is already taken. Please choose another.' });
     }
 
-    // If available, add the booking
+    // Add booking with meeting details and attendees
     room.bookings.push({
       student: req.user.id,
       date,
       startTime,
       endTime,
+      meetingName,
+      attendees,
     });
     await room.save();
 
@@ -480,11 +482,16 @@ app.post('/book-room', verifyToken, async (req, res) => {
 
 const initializeRooms = async () => {
   const existingRooms = await studyRoomModel.find();
-  if (existingRooms.length === 0) {
+  if (existingRooms.length === 0) { // Add rooms only if no rooms exist
     const defaultRooms = [
       { roomName: 'Room A', capacity: 10 },
       { roomName: 'Room B', capacity: 8 },
-      { roomName: 'Room C', capacity: 5 },
+      { roomName: 'Room C', capacity: 3 },
+      { roomName: 'Room D', capacity: 12 },
+      { roomName: 'Room E', capacity: 6 },
+      { roomName: 'Room F', capacity: 15 },
+      { roomName: 'Room G', capacity: 5 }
+
     ];
     await studyRoomModel.insertMany(defaultRooms);
     console.log('Predefined rooms added to the database.');
@@ -492,7 +499,6 @@ const initializeRooms = async () => {
 };
 
 initializeRooms();
-
 
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;

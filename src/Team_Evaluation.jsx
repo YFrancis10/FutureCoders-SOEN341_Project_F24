@@ -25,7 +25,7 @@ function classNames(...classes) {
 const TeamEvaluation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { team } = location.state;
+  const { team, student} = location.state || {};
 
   const [selectedTeammates, setSelectedTeammates] = useState([]);
   const [evaluationType, setEvaluationType] = useState('');
@@ -290,19 +290,21 @@ const TeamEvaluation = () => {
             <div className="max-w-2xl py-6 px-4">
               <h1 className="text-3xl font-bold mb-4">Evaluate Team: {team.name}</h1>
               <form onSubmit={handleSubmit}>
-                <h2 className="text-2xl mb-4">Select teammates to evaluate:</h2>
-                {team.students.map((teammate) => (
-                  <div key={teammate._id} className="mb-2">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        onChange={(e) => handleTeammateChange(e, teammate)} // Pass the teammate object
-                        className="mr-2"
-                      />
-                      {teammate.firstName} {teammate.lastName}
-                    </label>
-                  </div>
-                ))}
+                <h2 className="text-2xl mb-4">Select teammates to evaluate: <br />(please note that you can not rate yourself)</h2>
+                {team.students
+                  .filter((teammate) => teammate._id !== student._id) // Exclude logged-in student
+                  .map((teammate) => (
+                    <div key={teammate._id} className="mb-2">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          onChange={(e) => handleTeammateChange(e, teammate)} // Pass the teammate object
+                          className="mr-2"
+                        />
+                        {teammate.firstName} {teammate.lastName}
+                      </label>
+                    </div>
+                  ))}
 
                 <h2 className="text-2xl mt-6 mb-4">Select evaluation type:</h2>
                 <select
@@ -323,7 +325,7 @@ const TeamEvaluation = () => {
                     type="button"
                     onClick={goBackHome}
                     className="inline-flex items-center justify-center rounded-md bg-gray-200 text-black px-4 py-2 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-transform transform hover:scale-105">
-                    Go back
+                    Go back to Student Dashboard page
                   </button>
                   <button
                     type="submit"
