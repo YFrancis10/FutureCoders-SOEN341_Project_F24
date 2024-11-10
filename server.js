@@ -92,18 +92,20 @@ const peerRatingModel = mongoose.model('PeerRating', peerRatingSchema);
 
 // Study Room Schema
 const studyRoomSchema = new mongoose.Schema({
-  roomName: {type: String, required: true},
+  roomName: String,
   capacity: Number,
-  bookedSlots: [
+  bookings: [
     {
-      team: {type: mongoose.Schema.Types.ObjectId, ref: 'Teams'},
-      startTime: Date,
-      endTime: Date,
+      student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
+      date: String,
+      startTime: String,
+      endTime: String,
     },
   ],
 });
 
 const studyRoomModel = mongoose.model('StudyRoom', studyRoomSchema);
+
 
 
 // To generate random ID
@@ -429,60 +431,68 @@ app.get('/teams/:teamId/ratings', verifyToken, async (req, res) => {
   }
 });
 
-// Endpoint to get avalaible study rooms
-app.get('/study-rooms/avalaible', verifyToken, async(req, res) => {
-  const {startTime, endTime} = req.query;
-
-  try{
-    const avalaibleRooms = await studyRoomModel.find({
-      bookedSlots: {
-        $not:{
-          $elemMatch:{
-            $or:[
-              {startTime: {$lt: endTime, $gte: startTime}},
-              {endTime: {$gt: startTime, $lte: endTime}},
-            ],
-          },
-        },
-      },
-    });
-
-    res.json(avalaibleRooms);
-  } catch(error) {
-    console.error('Error fetching avalaible rooms:', error);
-    res.status(500).json({message: 'Internal Server Error'});
+app.get('/study-rooms', verifyToken, async (req, res) => {
+  try {
+    const rooms = await studyRoomModel.find();
+    res.status(200).json(rooms);
+  } catch (error) {
+    console.error('Error fetching study rooms:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
-app.post('/study-rooms/:roomId/book', verifyToken, async(req, res) => {
-  const { roomId } = req.params;
-  const { startTime, endTime } = req.body;
+// Endpoint to fetch all rooms
+app.post('/book-room', verifyToken, async (req, res) => {
+  const { roomId, date, startTime, endTime } = req.body;
 
-  try{
+  try {
     const room = await studyRoomModel.findById(roomId);
+    if (!room) {
+      return res.status(404).json({ message: 'Study room not found' });
+    }
 
-    if(!room) return res.status(404).json({message: 'Room not found'});
+    // Check for overlapping bookings
+    const isAvailable = room.bookings.every(
+      (booking) =>
+        booking.date !== date ||
+        (endTime <= booking.startTime || startTime >= booking.endTime)
+    );
 
-    const hasConflict = room.bookedSlots.some(slot => 
-      (new Date(slot.startTime) < new Date(endTime) && new Date(slot.endTime) > new Date(startTime)));
+    if (!isAvailable) {
+      return res.status(400).json({ message: 'This time slot is already taken. Please choose another.' });
+    }
 
-      if(hasConflict){
-        return res.status(400).json({message: 'Room is already booked for this time'});
-      }
+    // If available, add the booking
+    room.bookings.push({
+      student: req.user.id,
+      date,
+      startTime,
+      endTime,
+    });
+    await room.save();
 
-      room.bookedSlots.push({
-        team: req.user.id,
-        startTime,
-        endTime,
-      });
-      await room.save();
-
-      res.status(200).json({success: true, message: 'Room booked successfully'});
-  } catch (error){
+    res.status(200).json({ success: true, message: 'Room booked successfully!' });
+  } catch (error) {
     console.error('Error booking room:', error);
-    res.status(500).json({message: 'Internal Server Error'});
+    res.status(500).json({ message: 'Internal Server Error' });
   }
-})
+});
+
+const initializeRooms = async () => {
+  const existingRooms = await studyRoomModel.find();
+  if (existingRooms.length === 0) {
+    const defaultRooms = [
+      { roomName: 'Room A', capacity: 10 },
+      { roomName: 'Room B', capacity: 8 },
+      { roomName: 'Room C', capacity: 5 },
+    ];
+    await studyRoomModel.insertMany(defaultRooms);
+    console.log('Predefined rooms added to the database.');
+  }
+};
+
+initializeRooms();
+
 
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
