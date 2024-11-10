@@ -94,6 +94,17 @@ const Login = () => {
             Sign Up
           </span>
         </p>
+
+        {/* Change teh user password link */}
+        <p className="mt-4 text-center text-gray-600">
+          Forgot your password?{' '}
+          <span
+            className="text-blue-600 cursor-pointer hover:underline transition duration-200 ease-in-out"
+            onClick={() => navigate('/Email')}
+          >
+            Change password
+          </span>
+        </p>
       </div>
     </div>
   );
