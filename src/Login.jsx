@@ -6,33 +6,37 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState({ text: '', type: '' });
 
   const handleLogin = async (e) => {
     e.preventDefault(); // Prevent form submission
-  
+
     try {
       const response = await axios.post('http://localhost:5001/Login', {
         email,
         password,
       });
-  
+
       const data = response.data;
-  
+
       if (response.status === 200) {
         // Save the token in local storage
         localStorage.setItem('token', data.token);
-  
+        
+        // Set success message and navigate to the correct dashboard
+        setMessage({ text: 'Login successful!', type: 'success' });
+        
         if (data.role === 'student') {
           navigate('/Student_Dashboard');
         } else if (data.role === 'teacher') {
           navigate('/Teacher_Dashboard');
         }
       } else {
-        setMessage(data.message || "An error occurred");
+        setMessage({ text: data.message || "An error occurred", type: 'error' });
       }
     } catch (error) {
-      setMessage(error.response?.data.message || "An error occurred");
+      // Display error message for incorrect email/password
+      setMessage({ text: error.response?.data.message || "Incorrect email or password", type: 'error' });
     }
   };
 
@@ -73,9 +77,9 @@ const Login = () => {
         </form>
 
         {/* Feedback message with conditional styling */}
-        {message && (
+        {message.text && (
           <div className={`mt-4 text-center ${message.type === 'error' ? 'text-red-600' : 'text-green-600'}`}>
-            {message.type === 'error' ? '⚠️ ' : '✅ '}
+            {message.type === 'error' ? '❌' : '✅'} {/* Red "X" for error, check mark for success */}
             {message.text}
           </div>
         )}
