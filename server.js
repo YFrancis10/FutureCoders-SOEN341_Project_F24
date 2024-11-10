@@ -90,6 +90,24 @@ const peerRatingSchema = new mongoose.Schema({
 // Create the PeerRating model
 const peerRatingModel = mongoose.model('PeerRating', peerRatingSchema);
 
+// Study Room Schema
+const studyRoomSchema = new mongoose.Schema({
+  roomName: String,
+  capacity: Number,
+  bookings: [
+    {
+      student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
+      date: String,
+      startTime: String,
+      endTime: String,
+    },
+  ],
+});
+
+const studyRoomModel = mongoose.model('StudyRoom', studyRoomSchema);
+
+
+
 // To generate random ID
 // Function to generate a unique 8-digit ID between 40000000 and 50000000
 const generateUniqueStudentID = async () => {
@@ -412,6 +430,69 @@ app.get('/teams/:teamId/ratings', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+
+app.get('/study-rooms', verifyToken, async (req, res) => {
+  try {
+    const rooms = await studyRoomModel.find();
+    res.status(200).json(rooms);
+  } catch (error) {
+    console.error('Error fetching study rooms:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+// Endpoint to fetch all rooms
+app.post('/book-room', verifyToken, async (req, res) => {
+  const { roomId, date, startTime, endTime } = req.body;
+
+  try {
+    const room = await studyRoomModel.findById(roomId);
+    if (!room) {
+      return res.status(404).json({ message: 'Study room not found' });
+    }
+
+    // Check for overlapping bookings
+    const isAvailable = room.bookings.every(
+      (booking) =>
+        booking.date !== date ||
+        (endTime <= booking.startTime || startTime >= booking.endTime)
+    );
+
+    if (!isAvailable) {
+      return res.status(400).json({ message: 'This time slot is already taken. Please choose another.' });
+    }
+
+    // If available, add the booking
+    room.bookings.push({
+      student: req.user.id,
+      date,
+      startTime,
+      endTime,
+    });
+    await room.save();
+
+    res.status(200).json({ success: true, message: 'Room booked successfully!' });
+  } catch (error) {
+    console.error('Error booking room:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+const initializeRooms = async () => {
+  const existingRooms = await studyRoomModel.find();
+  if (existingRooms.length === 0) {
+    const defaultRooms = [
+      { roomName: 'Room A', capacity: 10 },
+      { roomName: 'Room B', capacity: 8 },
+      { roomName: 'Room C', capacity: 5 },
+    ];
+    await studyRoomModel.insertMany(defaultRooms);
+    console.log('Predefined rooms added to the database.');
+  }
+};
+
+initializeRooms();
+
 
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
