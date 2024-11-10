@@ -15,8 +15,8 @@ import ConceptualContribution from './ConceptualContribution';
 import PracticalContribution from './PracticalContribution';
 import WorkEthic from './WorkEthic';
 import Summary from './Summary';
-import RoomList from './RoomList'; // Import RoomList
-import BookRoom from './BookRoom'; // Import BookRoom
+import RoomList from './RoomList'; 
+import BookRoom from './BookRoom'; 
 
 const App = () => {
   return (
