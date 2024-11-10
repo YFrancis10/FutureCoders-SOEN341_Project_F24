@@ -232,6 +232,53 @@ app.get('/student/me', verifyToken, async (req, res) => {
   }
 });
 
+// Route to check if the email exists in the database
+app.post('/check-email', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Search for the email in both student and teacher collections
+    const user = await studentModel.findOne({ email }) || await teacherModel.findOne({ email });
+
+    if (user) {
+      // Email exists in the database
+      res.status(200).json({ success: true, message: 'Email found' });
+    } else {
+      // Email does not exist in the database
+      res.status(404).json({ success: false, message: 'Email does not exist' });
+    }
+  } catch (error) {
+    console.error('Error checking email existence:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
+// Route to change the user's password
+app.post('/change-password', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Find the user by email in both student and teacher collections
+    const user = await studentModel.findOne({ email }) || await teacherModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update the user's password
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Password updated successfully!' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
 // Route to get all students
 app.get('/students', verifyToken, async (req, res) => {
   try {

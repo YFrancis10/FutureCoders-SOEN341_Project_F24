@@ -236,6 +236,7 @@ const BookRoom = () => {
                 <li>Study rooms are available from 8:00 AM to 11:00 PM every day.</li>
                 <li>Each room booking has a maximum duration of 3 hours.</li>
                 <li>Please ensure all attendees are aware of the room location and timing.</li>
+                <li>Please ensure that the selected number of attendees for the {teamName} team fits the capacity of the room.</li>
               </ul>
             </div>
             
