@@ -15,6 +15,8 @@ import ConceptualContribution from './ConceptualContribution';
 import PracticalContribution from './PracticalContribution';
 import WorkEthic from './WorkEthic';
 import Summary from './Summary';
+import BookRoom from './BookRoom';
+
 
 
 const App = () => {
@@ -51,6 +53,7 @@ const App = () => {
         <Route path="/Practical_Contribution" element={<PracticalContribution />} />
         <Route path="/Work_Ethic" element={<WorkEthic />} />
         <Route path="/summary/:teamId" element={<Summary />} />
+        <Route path="/BookRoom" element={<BookRoom />} />
         <Route path="/" element={<Login />} />  {/* Redirect root to login */}
       </Routes>
     </Router>

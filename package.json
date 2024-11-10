@@ -10,8 +10,8 @@
     "preview": "vite preview",
     "server": "nodemon server.js",
     "start": "node server.js",
-    "client": "vite"
-    "test": "jest",                    // Replace 'jest' with your test runner if different
+    "client": "vite",
+    "test": "jest"                   
   },
   "dependencies": {
     "@headlessui/react": "^2.1.8",
