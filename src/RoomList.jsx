@@ -134,7 +134,7 @@ const RoomList = () => {
                   </div>
                   <Link
                     to={`/BookRoom/${room._id}`}
-                    state={{ teamMembers: location.state?.teamMembers, teamName }}
+                    state={{ teamMembers: location.state?.teamMembers, teamName, roomCapacity: room.capacity }} // Pass room capacity
                     className="rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-sm font-medium transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105"
                   >
                     Select Room

@@ -27,8 +27,10 @@ const BookRoom = () => {
   const { roomId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+
   const teamMembers = location.state?.teamMembers || [];
   const teamName = location.state?.teamName || 'Unknown Team';
+  const roomCapacity = location.state?.roomCapacity || 0;
 
   const [meetingName, setMeetingName] = useState('');
   const [date, setDate] = useState('');
@@ -39,6 +41,30 @@ const BookRoom = () => {
 
   const handleBooking = async (e) => {
     e.preventDefault();
+
+    // Check if selected members exceed room capacity
+    if (selectedMembers.length > roomCapacity) {
+      alert(`The selected number of attendees (${selectedMembers.length}) exceeds the room capacity (${roomCapacity}). Please select fewer attendees.`);
+      return;
+    }
+
+    // Check if booking is at least 24 hours in advance
+    const bookingDate = new Date(`${date}T${startTime}`);
+    const currentDate = new Date();
+    const hoursDifference = (bookingDate - currentDate) / (1000 * 60 * 60);
+    if (hoursDifference < 24) {
+      alert("Bookings must be made at least 24 hours in advance.");
+      return;
+    }
+
+    // Check if the booking time is within allowed hours (8 AM to 11 PM)
+    const startHour = parseInt(startTime.split(':')[0], 10);
+    const endHour = parseInt(endTime.split(':')[0], 10);
+    if (startHour < 8 || endHour > 23) {
+      alert("Rooms can only be booked between 8 AM and 11 PM.");
+      return;
+    }
+
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post('http://localhost:5001/book-room', {
@@ -51,16 +77,12 @@ const BookRoom = () => {
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-  
+
       if (response.data.success) {
         setMessage("Room booked successfully!");
       }
     } catch (error) {
-      if (error.response && error.response.data.message) {
-        setMessage(error.response.data.message);
-      } else {
-        setMessage("Error booking room. Please try again.");
-      }
+      setMessage(error.response?.data.message || "Error booking room. Please try again.");
     }
   };
 
@@ -87,7 +109,6 @@ const BookRoom = () => {
 
   return (
     <>
-      {/* Navigation Bar */}
       <div className="min-h-full">
         <Disclosure as="nav" className="bg-gradient-to-b from-blue-500 to-blue-400">
           {({ open }) => (
@@ -127,7 +148,6 @@ const BookRoom = () => {
                         <BellIcon className="h-6 w-6" aria-hidden="true" />
                       </button>
 
-                      {/* Profile dropdown */}
                       <Menu as="div" className="relative ml-3">
                         <div>
                           <Menu.Button className="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
@@ -228,7 +248,6 @@ const BookRoom = () => {
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             {message && <p className="mb-4 text-green-500">{message}</p>}
             
-            {/* Notices Section */}
             <div className="mb-6">
               <h2 className="text-lg font-semibold mb-2">Please Note:</h2>
               <ul className="list-disc pl-5 text-gray-700 space-y-1">
@@ -236,7 +255,7 @@ const BookRoom = () => {
                 <li>Study rooms are available from 8:00 AM to 11:00 PM every day.</li>
                 <li>Each room booking has a maximum duration of 3 hours.</li>
                 <li>Please ensure all attendees are aware of the room location and timing.</li>
-                <li>Please ensure that the selected number of attendees for the {teamName} team fits the capacity of the room.</li>
+                <li>Please ensure that the selected number of attendees for the {teamName} team fits the capacity of the</li>
               </ul>
             </div>
             
