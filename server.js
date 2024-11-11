@@ -397,14 +397,6 @@ app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
   const { teamId } = req.params;
   const { rateeId, cooperation, conceptualContribution, practicalContribution, workEthic, comment } = req.body;
 
-  // Ensure only one evaluation field is present
-  const evaluationFields = { cooperation, conceptualContribution, practicalContribution, workEthic };
-  const specifiedFields = Object.entries(evaluationFields).filter(([key, value]) => value !== undefined);
-
-  if (specifiedFields.length !== 1) {
-    return res.status(400).json({ message: 'Only one evaluation type must be specified per request.' });
-  }
-
   try {
     const team = await teamModel.findById(teamId).populate('students');
     if (!team) return res.status(404).json({ message: 'Team not found.' });
@@ -416,17 +408,17 @@ app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Both the rater and ratee must be part of the same team.' });
     }
 
-    const newRatingData = {
+    const newRating = new peerRatingModel({
       rater: req.user.id,
       ratee: rateeId,
       team: teamId,
-      comment
-    };
+      cooperation,
+      conceptualContribution,
+      practicalContribution,
+      workEthic,
+      comment,
+    });
 
-    // Add only the specified evaluation field to the newRatingData object
-    newRatingData[specifiedFields[0][0]] = specifiedFields[0][1];
-
-    const newRating = new peerRatingModel(newRatingData);
     await newRating.save();
     res.status(200).json({ success: true, message: 'Rating submitted successfully!' });
   } catch (error) {
