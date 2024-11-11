@@ -10,6 +10,14 @@
 //    npm install tailwindcss postcss autoprefixer
 //    npx tailwindcss init -p
 
+// 4. For Unit Testing:
+//    npm install --save-dev @testing-library/react @testing-library/jest-dom jest
+//    npm audit fix --force 
+//    npm install --save-dev @babel/preset-env @babel/preset-react
+//    npm install --save-dev babel-jest 
+//    npm install --save-dev jest-environment-jsdom
+//    npm install --save @testing-library/jest-dom 
+
 // 4. IMPORTANT: Install MongoDB Compass or another MongoDB GUI to manage your database easily
 
 import express from 'express';
