@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "start": "node server.js && react-scripts start",
     "build": "vite build && react-scripts build",
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "nodemon server.js",
-    "start": "node server.js && react-scripts start",
     "client": "vite",
     "test": "jest && react-scripts test --watchAll --coverage",
     "eject": "react-scripts eject"

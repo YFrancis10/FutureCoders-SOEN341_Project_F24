@@ -1,10 +1,9 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '@testing-library/react';
 import main from '../main';
-import app from '../App';
 import App from '../App';
 
 test("Example 1 renders successfully", () => {
-    render(<main.jsx/>);
+    render(<App/>);
 
     const element = screen.getByText(/Log In/i);
 
