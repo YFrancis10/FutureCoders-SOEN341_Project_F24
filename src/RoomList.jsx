@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
-import { Bars3Icon, BellIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, BellIcon } from '@heroicons/react/24/outline';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -10,19 +10,20 @@ function classNames(...classes) {
 
 const RoomList = () => {
   const [rooms, setRooms] = useState([]);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
-  const teamName = location.state?.teamName || "Unknown Team"; // Default to "Unknown Team" if not found in state
+
+  // Extract teamName and teamMembers from location.state
+  const teamName = location.state?.teamName || "Unknown Team";
+  const teamMembers = location.state?.teamMembers || [];
 
   useEffect(() => {
     const fetchRooms = async () => {
       try {
         const token = localStorage.getItem('token');
         const response = await axios.get('http://localhost:5001/study-rooms', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
         setRooms(response.data);
       } catch (error) {
@@ -31,7 +32,6 @@ const RoomList = () => {
         setLoading(false);
       }
     };
-      
     fetchRooms();
   }, []);
 
@@ -126,7 +126,7 @@ const RoomList = () => {
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <h2 className="text-2xl mb-4">Select a room:</h2>
             {rooms.length > 0 ? (
-              rooms.map(room => (
+              rooms.map((room) => (
                 <div key={room._id} className="p-4 bg-gray-100 rounded-lg shadow-md border border-gray-200 mb-4 flex justify-between items-center hover:bg-gray-200 transition duration-150 ease-in-out">
                   <div>
                     <h2 className="text-xl font-semibold">{room.roomName}</h2>
@@ -134,7 +134,7 @@ const RoomList = () => {
                   </div>
                   <Link
                     to={`/BookRoom/${room._id}`}
-                    state={{ teamMembers: location.state?.teamMembers, teamName, roomCapacity: room.capacity }} // Pass room capacity
+                    state={{ teamMembers, teamName, roomCapacity: room.capacity, roomName: room.roomName }}
                     className="rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-sm font-medium transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105"
                   >
                     Select Room

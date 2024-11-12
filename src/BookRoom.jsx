@@ -28,9 +28,11 @@ const BookRoom = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Retrieve data from location state
   const teamMembers = location.state?.teamMembers || [];
   const teamName = location.state?.teamName || 'Unknown Team';
   const roomCapacity = location.state?.roomCapacity || 0;
+  const roomName = location.state?.roomName || 'Unknown Room';
 
   const [meetingName, setMeetingName] = useState('');
   const [date, setDate] = useState('');
@@ -42,13 +44,11 @@ const BookRoom = () => {
   const handleBooking = async (e) => {
     e.preventDefault();
 
-    // Check if selected members exceed room capacity
     if (selectedMembers.length > roomCapacity) {
       alert(`The selected number of attendees (${selectedMembers.length}) exceeds the room capacity (${roomCapacity}). Please select fewer attendees.`);
       return;
     }
 
-    // Check if booking is at least 24 hours in advance
     const bookingDate = new Date(`${date}T${startTime}`);
     const currentDate = new Date();
     const hoursDifference = (bookingDate - currentDate) / (1000 * 60 * 60);
@@ -57,26 +57,30 @@ const BookRoom = () => {
       return;
     }
 
-    // Check if the booking time is within allowed hours (8 AM to 11 PM)
-    const startHour = parseInt(startTime.split(':')[0], 10);
-    const endHour = parseInt(endTime.split(':')[0], 10);
-    if (startHour < 8 || endHour > 23) {
-      alert("Rooms can only be booked between 8 AM and 11 PM.");
+    const [startHour, startMinute] = startTime.split(':').map(Number);
+    const [endHour, endMinute] = endTime.split(':').map(Number);
+
+    if (startHour < 8 || (startHour === 8 && startMinute < 0) || endHour > 23 || (endHour === 23 && endMinute > 0)) {
+      alert("Rooms can only be booked between 8:00 AM and 11:00 PM.");
+      return;
+    }
+
+    const start = new Date(`${date}T${startTime}`);
+    const end = new Date(`${date}T${endTime}`);
+    const durationMinutes = (end - start) / (1000 * 60);
+
+    if (durationMinutes > 180) {
+      alert("You cannot reserve a room for more than 3 hours.");
       return;
     }
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:5001/book-room', {
-        roomId,
-        date,
-        startTime,
-        endTime,
-        meetingName,
-        attendees: selectedMembers,
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await axios.post(
+        'http://localhost:5001/book-room',
+        { roomId, date, startTime, endTime, meetingName, attendees: selectedMembers },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       if (response.data.success) {
         setMessage("Room booked successfully!");
@@ -99,12 +103,17 @@ const BookRoom = () => {
     navigate('/login');
   };
 
-  const goBackHome = () => {
-    navigate('/Student_Dashboard');
+  const clearForm = () => {
+    setMeetingName('');
+    setDate('');
+    setStartTime('');
+    setEndTime('');
+    setSelectedMembers([]);
+    setMessage(null);
   };
 
   const goBackRoomList = () => {
-    navigate('/RoomList');
+    navigate('/RoomList', { state: { teamName, teamMembers } });
   };
 
   return (
@@ -147,7 +156,6 @@ const BookRoom = () => {
                         <span className="sr-only">View notifications</span>
                         <BellIcon className="h-6 w-6" aria-hidden="true" />
                       </button>
-
                       <Menu as="div" className="relative ml-3">
                         <div>
                           <Menu.Button className="flex max-w-xs items-center rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
@@ -203,7 +211,7 @@ const BookRoom = () => {
                     </div>
                   </div>
                   <div className="-mr-2 flex md:hidden">
-                    <Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+                    <Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                       <span className="sr-only">Open main menu</span>
                       {open ? (
                         <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
@@ -240,14 +248,14 @@ const BookRoom = () => {
 
         <header className="bg-white shadow">
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Book Study Room for Team {teamName}</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">
+              Book {roomName} for Team {teamName}
+            </h1>
           </div>
         </header>
 
         <main>
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            {message && <p className="mb-4 text-green-500">{message}</p>}
-            
             <div className="mb-6">
               <h2 className="text-lg font-semibold mb-2">Please Note:</h2>
               <ul className="list-disc pl-5 text-gray-700 space-y-1">
@@ -255,10 +263,10 @@ const BookRoom = () => {
                 <li>Study rooms are available from 8:00 AM to 11:00 PM every day.</li>
                 <li>Each room booking has a maximum duration of 3 hours.</li>
                 <li>Please ensure all attendees are aware of the room location and timing.</li>
-                <li>Please ensure that the selected number of attendees for the {teamName} team fits the capacity of the</li>
+                <li>Please ensure that the selected number of attendees for the {teamName} team fits the capacity of the room.</li>
               </ul>
             </div>
-            
+
             <form onSubmit={handleBooking} className="space-y-4">
               <div>
                 <label className="block text-md font-semibold mb-1">Meeting Name:</label>
@@ -317,11 +325,23 @@ const BookRoom = () => {
                   required
                 />
               </div>
+
+              {message && <p className="mt-2 text-green-500">{message}</p>}
+
+              <button
+                type="button"
+                onClick={clearForm}
+                className="mt-2 text-blue-600 underline text-base font-medium"
+              >
+                Clear Data
+              </button>
+
               <div className="flex space-x-4">
                 <button
                   type="button"
                   onClick={goBackRoomList}
-                  className="inline-flex items-center justify-center rounded-md bg-gray-200 text-black px-4 py-2 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                  className="inline-flex items-center justify-center rounded-md bg-gray-200 text-black px-4 py-2 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-transform transform hover:scale-105"
+                >
                   Go back to Room List Page
                 </button>
                 <button type="submit" className="inline-flex items-center justify-center rounded-md bg-gradient-to-b from-blue-500 to-blue-400 text-white px-4 py-2 text-lg transform transition-transform duration-200 hover:bg-gradient-to-b hover:from-blue-600 hover:to-blue-500 hover:scale-105">
@@ -329,13 +349,14 @@ const BookRoom = () => {
                 </button>
               </div>
             </form>
-            <br />
 
+            <br />
             <div className="flex space-x-4">
               <button
                 type="button"
-                onClick={goBackHome}
-                className="inline-flex items-center justify-center rounded-md bg-gray-200 text-black px-4 py-2 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-transform transform hover:scale-105">
+                onClick={() => navigate('/Student_Dashboard')}
+                className="inline-flex items-center justify-center rounded-md bg-gray-200 text-black px-4 py-2 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-transform transform hover:scale-105"
+              >
                 Go back to Student Dashboard page
               </button>
             </div>
