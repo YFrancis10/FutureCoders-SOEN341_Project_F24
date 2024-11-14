@@ -37,10 +37,20 @@ describe('Log-in Page', () => {
     //expect(screen.get
   });
   it("submits", async () => {
-    axios.post.mockImplementationOnce(()=>Promise.resolve({data:["hello"]}, {status:["400"]}));
+    const handleSubmit = jest.fn();
+    render(<Router> <Login onSubmit={handleSubmit} /> </Router>);
+    const rangeinput=screen.getByLabelText('Email');
+    const rangeinput2=screen.getByLabelText('Password');
+    fireEvent.change(rangeinput,{target:{value: 'email'}});
+    fireEvent.change(rangeinput2,{target:{value: 'password'}});
+    
+    const huh = screen.getByLabelText("Log In");
+    fireEvent.click(huh);
+
+    //axios.post.mockImplementationOnce(()=>Promise.resolve({data:["hello"]}, {status:["400"]}));
     expect(screen.getByText(/Incorrect email or password/i)).toBeInTheDocument();
     useState.mockImplementationOnce(()=>[]);
-    
+
   });
   /*it('Bad log in', async () => {
     axios.get.mockImplementation(() => Promise.resolve({ status:  }))
@@ -128,66 +138,4 @@ describe('Log-in Page', () => {
     });
   });
 
-  it('renders error message if teams cannot be fetched', async () => {
-    const studentData = { firstName: 'John', lastName: 'Doe' };
-    axios.get.mockResolvedValueOnce({ data: studentData }); // Mock student data
-    axios.get.mockRejectedValueOnce(new Error('Failed to fetch teams')); // Mock error for teams
-
-    render(
-      <Router>
-        <StudentDashboard />
-      </Router>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText(/Failed to load teams. Please try again later./i)).toBeInTheDocument();
-    });
-  });
-
-  it('navigates to room booking page when booking a room', async () => {
-    const studentData = { firstName: 'John', lastName: 'Doe' };
-    const teamsData = [
-      { _id: 'team1', name: 'Team Alpha', students: [{ firstName: 'Jane', lastName: 'Doe' }] },
-    ];
-    axios.get.mockResolvedValueOnce({ data: studentData }); // Fetch student data
-    axios.get.mockResolvedValueOnce({ data: teamsData }); // Fetch teams data
-
-    render(
-      <Router>
-        <StudentDashboard />
-      </Router>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText(/Team Alpha/i)).toBeInTheDocument();
-    });
-
-    // Simulate booking a room
-    const bookRoomButton = screen.getByText(/Book a Study Room/i);
-    fireEvent.click(bookRoomButton);
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/RoomList', {
-        state: { teamName: 'Team Alpha', teamMembers: teamsData[0].students },
-      });
-    });
-  });
-
-  it('handles logout correctly', () => {
-    const studentData = { firstName: 'John', lastName: 'Doe' };
-    axios.get.mockResolvedValueOnce({ data: studentData });
-
-    render(
-      <Router>
-        <StudentDashboard />
-      </Router>
-    );
-
-    const logoutButton = screen.getByText(/Sign out/i);
-    fireEvent.click(logoutButton);
-
-    expect(localStorage.getItem('token')).toBeNull();
-    expect(mockNavigate).toHaveBeenCalledWith('/login');
-  });
-});
 */

@@ -46,7 +46,7 @@ const Login = () => {
         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Log In</h2>
 
         {/* The form */}
-        <form onSubmit={handleLogin} data-testid="form">
+        <form onSubmit={handleLogin}data-testid="form">
           <div className="mb-4">
             <label className="block text-gray-700">Email</label>
             <input
@@ -55,7 +55,7 @@ const Login = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
-            />
+            />3
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Password</label>
