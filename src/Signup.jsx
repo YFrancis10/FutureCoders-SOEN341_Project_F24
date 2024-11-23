@@ -32,17 +32,21 @@ const Signup = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-auth-bg bg-cover bg-center">
       <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md glass">
+        <div className='w-full text-center my-3'>
         <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Sign Up</h2>
         <form onSubmit={handleSignup}>
-          <div className="mb-4">
-            <label className="block text-gray-700">First Name</label>
+          <div className="flex border-b-black border-b-2 mx-5 mx-7 py-1">
+            <label className="block text-gray-700"> Name</label>
             <input
               type="text"
               value={formData.firstName}
               onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-transparent outline-none"
               required
             />
+            <div className="flex items-center justify-center">
+              <i class="fa-solid fa-user"></i>
+            </div>
           </div>
           <div className="mb-4">
             <label className="block text-gray-700">Last Name</label>
@@ -105,6 +109,7 @@ const Signup = () => {
             Log in
           </span>
         </p>
+        </div>
       </div>
     </div>
   );
