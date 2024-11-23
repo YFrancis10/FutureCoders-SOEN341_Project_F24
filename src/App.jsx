@@ -18,21 +18,6 @@ import DetailedResults from './DetailedResults';
 const App = () => {
   return (
     <Router>
-      <div className="flex justify-center mt-0 space-x-4">
-        <Link
-          to="/login"
-          className="rounded-md bg-blue-700 text-white px-4 py-2 text-sm font-medium transition-transform hover:scale-105"
-        >
-          Log In
-        </Link>
-        <Link
-          to="/signup"
-          className="rounded-md bg-blue-500 text-white px-4 py-2 text-sm font-medium transition-transform hover:scale-105"
-        >
-          Sign Up
-        </Link>
-      </div>
-
       <Routes>
         <Route path="/Signup" element={<Signup />} />
         <Route path="/Login" element={<Login />} />
