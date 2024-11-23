@@ -41,39 +41,51 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-auth-bg bg-cover bg-center">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-md glass">
-        <h2 className="text-3xl font-bold mb-6 text-center text-gray-800">Log In</h2>
+    <div className="flex items-center justify-center min-h-screen bg-auth-bg bg-cover bg-center tracking-wider">
+      <div className="w-11/12 sm:w-5/12 md:w-3/12 text-sm glass">
+      <div className='w-full text-center my-3'>
+        <h2 className="text-2x1 text-black font-medium text-xl">Log In</h2>
 
         {/* The form */}
-        <form onSubmit={handleLogin}>
-          <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
+        <form onSubmit={handleLogin} className='my-2'>
+
+          <div className="flex border-b-black border-b-2 mx-5 my-7 py-1">
             <input
               type="email"
               value={email}
+              placeholder="Email"
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-11/12 bg-transparent outline-none placeholder-black"
               required
             />
+            <div className="flex items-center justify-center">
+              <i className="fa-solid fa-envelope text-xl"></i>
+            </div>
           </div>
-          <div className="mb-4">
-            <label className="block text-gray-700">Password</label>
+
+          <div className="flex border-b-black border-b-2 mx-5 my-7 py-1">
             <input
               type="password"
               value={password}
+              placeholder="Password"
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-11/12 bg-transparent outline-none placeholder-black"
               required
             />
+            <div className="flex items-center justify-center">
+              <i className="fa-solid fa-lock text-xl"></i>
+            </div>
           </div>
+
           {/* Login Button */}
+          <div className='mx-5 my-7 py-2'>
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 hover:scale-105 shadow-md hover:shadow-lg transition-transform duration-300"
-          >
+            className="bg-black w-full h-[35px] rounded-sm text text-white"
+            >
             Log In
           </button>
+          </div>
         </form>
 
         {/* Feedback message with conditional styling */}
@@ -85,15 +97,18 @@ const Login = () => {
         )}
 
         {/* Navigation link */}
-        <p className="mt-4 text-center text-gray-600">
+        <div className="mx-5 my-5 py-2 flex items-center justify-center cursor-pointer">
+        <p className="text-sm">
           Don't have an account?{' '}
           <span
-            className="text-blue-600 cursor-pointer hover:underline transition duration-200 ease-in-out"
-            onClick={() => navigate('/Signup')}
+              className="text-blue-600 cursor-pointer hover:underline"
+              onClick={() => navigate('/Signup')}
           >
             Sign Up
           </span>
         </p>
+        </div>
+        </div>
       </div>
     </div>
   );
