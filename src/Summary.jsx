@@ -19,19 +19,28 @@ function Summary() {
   const [teamData, setTeamData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [teamName, setTeamName] = useState(location.state?.teamName || ''); // Get teamName from location.state if available
   const navigate = useNavigate();
-
-  // Retrieve the team name from the location state
-  const teamName = location.state?.teamName || 'Loading...';
 
   useEffect(() => {
     const fetchTeamData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:5001/teams/${teamId}/ratings`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setTeamData(response.data);
+        
+        // Fetch team data (ratings) and team name if not already passed
+        const [teamDataResponse, teamNameResponse] = await Promise.all([
+          axios.get(`http://localhost:5001/teams/${teamId}/ratings`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          !teamName ? axios.get(`http://localhost:5001/teams/${teamId}`) : null, // Fetch team name only if not in state
+        ]);
+
+        setTeamData(teamDataResponse.data);
+
+        if (teamNameResponse) {
+          setTeamName(teamNameResponse.data.teamName); // Set team name from API if it wasn't passed
+        }
+
         setLoading(false);
       } catch (err) {
         console.error('Error fetching team data:', err);
@@ -41,7 +50,7 @@ function Summary() {
     };
 
     fetchTeamData();
-  }, [teamId]);
+  }, [teamId, teamName]); // Adding teamName to dependencies ensures it doesn’t refetch if teamName is set
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>{error}</p>;
@@ -116,7 +125,7 @@ function Summary() {
               <div className="-mr-2 flex md:hidden">
                 <Disclosure.Button className="inline-flex items-center justify-center rounded-md bg-gray-800 p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                   <span className="sr-only">Open main menu</span>
-                  {open ? <XMarkIcon className="block h-6 w-6" aria-hidden="true" /> : <Bars3Icon className="block h-6 w-6" aria-hidden="true" />}
+                  <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
                 </Disclosure.Button>
               </div>
             </div>

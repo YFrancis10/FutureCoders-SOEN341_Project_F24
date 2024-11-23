@@ -25,10 +25,9 @@ function classNames(...classes) {
 const TeamEvaluation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { team, student} = location.state || {};
+  const { team, student } = location.state || {};
 
   const [selectedTeammates, setSelectedTeammates] = useState([]);
-  const [evaluationType, setEvaluationType] = useState('');
 
   const handleTeammateChange = (e, teammate) => {
     const { checked } = e.target;
@@ -38,11 +37,10 @@ const TeamEvaluation = () => {
       setSelectedTeammates(selectedTeammates.filter((t) => t._id !== teammate._id));
     }
   };
-  
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); // Clear token from local storage
-    navigate('/login'); // Redirect to login page
+    localStorage.removeItem('token');
+    navigate('/login');
   };
 
   const goBackHome = () => {
@@ -51,68 +49,23 @@ const TeamEvaluation = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-  
-    if (selectedTeammates.length === 0 || evaluationType === '') {
-      alert('Please select at least one teammate and an evaluation type.');
+
+    if (selectedTeammates.length === 0) {
+      alert('Please select at least one teammate.');
       return;
     }
-  
-    // Assuming teamId is available from the team object
-    const teamId = team._id; // Update this line based on how you're getting teamId
-  
-    switch (evaluationType) {
-      case 'Type1': // Cooperation
-        navigate('/Cooperation', { 
-          state: { 
-            selectedTeammates, 
-            teamName: team.name, 
-            teamId, // Include teamId here
-            evaluationType 
-          } 
-        });
-        break;
-  
-      case 'Type2': // Conceptual Contribution
-        navigate('/Conceptual_Contribution', { 
-          state: { 
-            selectedTeammates, 
-            teamName: team.name, 
-            teamId, // Include teamId here
-            evaluationType 
-          } 
-        });
-        break;
-  
-      case 'Type3': // Practical Contribution
-        navigate('/Practical_Contribution', { 
-          state: { 
-            selectedTeammates, 
-            teamName: team.name, 
-            teamId, // Include teamId here
-            evaluationType 
-          } 
-        });
-        break;
-  
-      case 'Type4': // Work Ethic
-        navigate('/Work_Ethic', { 
-          state: { 
-            selectedTeammates, 
-            teamName: team.name, 
-            teamId, // Include teamId here
-            evaluationType 
-          } 
-        });
-        break;
-  
-      default:
-        console.error('Invalid evaluation type');
-        break;
-    }
+
+    const teamId = team._id;
+
+    navigate('/Cooperation', {
+      state: {
+        selectedTeammates,
+        teamName: team.name,
+        teamId,
+      },
+    });
   };
-  
-  
-  
+
   return (
     <>
       <div className="min-h-full">
@@ -290,15 +243,15 @@ const TeamEvaluation = () => {
             <div className="max-w-2xl py-6 px-4">
               <h1 className="text-3xl font-bold mb-4">Evaluate Team: {team.name}</h1>
               <form onSubmit={handleSubmit}>
-                <h2 className="text-2xl mb-4">Select teammates to evaluate: <br />(please note that you can not rate yourself)</h2>
+                <h2 className="text-2xl mb-4">Select teammates to evaluate: <br />(please note that you cannot rate yourself)</h2>
                 {team.students
-                  .filter((teammate) => teammate._id !== student._id) // Exclude logged-in student
+                  .filter((teammate) => teammate._id !== student._id)
                   .map((teammate) => (
                     <div key={teammate._id} className="mb-2">
                       <label className="flex items-center">
                         <input
                           type="checkbox"
-                          onChange={(e) => handleTeammateChange(e, teammate)} // Pass the teammate object
+                          onChange={(e) => handleTeammateChange(e, teammate)}
                           className="mr-2"
                         />
                         {teammate.firstName} {teammate.lastName}
@@ -306,21 +259,7 @@ const TeamEvaluation = () => {
                     </div>
                   ))}
 
-                <h2 className="text-2xl mt-6 mb-4">Select evaluation type:</h2>
-                <select
-                  value={evaluationType}
-                  onChange={(e) => setEvaluationType(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded mb-4"
-                  required
-                >
-                  <option value="">--Select Evaluation Type--</option>
-                  <option value="Type1">Cooperation</option>
-                  <option value="Type2">Conceptual Contribution</option>
-                  <option value="Type3">Practical Contribution</option>
-                  <option value="Type4">Work Ethic</option>
-                </select>
-
-                <div className="flex space-x-4">
+                <div className="flex space-x-4 mt-6">
                   <button
                     type="button"
                     onClick={goBackHome}

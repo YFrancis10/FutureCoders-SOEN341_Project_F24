@@ -10,6 +10,14 @@
 //    npm install tailwindcss postcss autoprefixer
 //    npx tailwindcss init -p
 
+// 4. For Unit Testing:
+//    npm install --save-dev @testing-library/react @testing-library/jest-dom jest
+//    npm audit fix --force 
+//    npm install --save-dev @babel/preset-env @babel/preset-react
+//    npm install --save-dev babel-jest 
+//    npm install --save-dev jest-environment-jsdom
+//    npm install --save @testing-library/jest-dom 
+
 // 4. IMPORTANT: Install MongoDB Compass or another MongoDB GUI to manage your database easily
 
 import express from 'express';
@@ -232,6 +240,53 @@ app.get('/student/me', verifyToken, async (req, res) => {
   }
 });
 
+// Route to check if the email exists in the database
+app.post('/check-email', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Search for the email in both student and teacher collections
+    const user = await studentModel.findOne({ email }) || await teacherModel.findOne({ email });
+
+    if (user) {
+      // Email exists in the database
+      res.status(200).json({ success: true, message: 'Email found' });
+    } else {
+      // Email does not exist in the database
+      res.status(404).json({ success: false, message: 'Email does not exist' });
+    }
+  } catch (error) {
+    console.error('Error checking email existence:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
+// Route to change the user's password
+app.post('/change-password', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    // Find the user by email in both student and teacher collections
+    const user = await studentModel.findOne({ email }) || await teacherModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    // Hash the new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Update the user's password
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Password updated successfully!' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
 // Route to get all students
 app.get('/students', verifyToken, async (req, res) => {
   try {
@@ -350,14 +405,6 @@ app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
   const { teamId } = req.params;
   const { rateeId, cooperation, conceptualContribution, practicalContribution, workEthic, comment } = req.body;
 
-  // Ensure only one evaluation field is present
-  const evaluationFields = { cooperation, conceptualContribution, practicalContribution, workEthic };
-  const specifiedFields = Object.entries(evaluationFields).filter(([key, value]) => value !== undefined);
-
-  if (specifiedFields.length !== 1) {
-    return res.status(400).json({ message: 'Only one evaluation type must be specified per request.' });
-  }
-
   try {
     const team = await teamModel.findById(teamId).populate('students');
     if (!team) return res.status(404).json({ message: 'Team not found.' });
@@ -369,17 +416,17 @@ app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
       return res.status(403).json({ message: 'Both the rater and ratee must be part of the same team.' });
     }
 
-    const newRatingData = {
+    const newRating = new peerRatingModel({
       rater: req.user.id,
       ratee: rateeId,
       team: teamId,
-      comment
-    };
+      cooperation,
+      conceptualContribution,
+      practicalContribution,
+      workEthic,
+      comment,
+    });
 
-    // Add only the specified evaluation field to the newRatingData object
-    newRatingData[specifiedFields[0][0]] = specifiedFields[0][1];
-
-    const newRating = new peerRatingModel(newRatingData);
     await newRating.save();
     res.status(200).json({ success: true, message: 'Rating submitted successfully!' });
   } catch (error) {
@@ -499,6 +546,64 @@ const initializeRooms = async () => {
 };
 
 initializeRooms();
+
+// Route to fetch detailed results for a specific team
+app.get('/teams/:teamId/detailed-results', verifyToken, async (req, res) => {
+  try {
+    const { teamId } = req.params;
+
+    // Find the team and populate student details
+    const team = await teamModel.findById(teamId).populate('students', 'firstName lastName studentID');
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Fetch all peer ratings for this team and populate rater's details including `studentID`
+    const ratings = await peerRatingModel.find({ team: teamId }).populate('rater', 'firstName lastName studentID');
+
+    // Prepare detailed results for each student in the team
+    const studentsData = team.students.map((student) => {
+      const studentRatings = ratings.filter((rating) => rating.ratee.equals(student._id));
+
+      const peersWhoResponded = studentRatings.length;
+
+      const cooperation = (studentRatings.reduce((sum, r) => sum + (r.cooperation || 0), 0) / peersWhoResponded) || 0;
+      const conceptualContribution = (studentRatings.reduce((sum, r) => sum + (r.conceptualContribution || 0), 0) / peersWhoResponded) || 0;
+      const practicalContribution = (studentRatings.reduce((sum, r) => sum + (r.practicalContribution || 0), 0) / peersWhoResponded) || 0;
+      const workEthic = (studentRatings.reduce((sum, r) => sum + (r.workEthic || 0), 0) / peersWhoResponded) || 0;
+      const average = (cooperation + conceptualContribution + practicalContribution + workEthic) / 4;
+
+      return {
+        studentID: student.studentID,
+        name: `${student.firstName} ${student.lastName}`,
+        cooperation,
+        conceptual: conceptualContribution,
+        practical: practicalContribution,
+        workEthic,
+        average,
+        ratings: studentRatings.map(rating => ({
+          raterName: `${rating.rater.firstName} ${rating.rater.lastName}`,
+          raterID: rating.rater.studentID, // Include custom 8-digit ID for rater
+          comment: rating.comment,
+          score: {
+            cooperation: rating.cooperation,
+            conceptualContribution: rating.conceptualContribution,
+            practicalContribution: rating.practicalContribution,
+            workEthic: rating.workEthic,
+          }
+        }))
+      };
+    });
+
+    res.json({
+      teamName: team.name,
+      students: studentsData,
+    });
+  } catch (error) {
+    console.error('Error fetching detailed view data:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
