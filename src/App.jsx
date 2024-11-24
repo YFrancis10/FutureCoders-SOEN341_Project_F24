@@ -14,6 +14,8 @@ import Summary from './Summary';
 import RoomList from './RoomList'; 
 import BookRoom from './BookRoom'; 
 import DetailedResults from './DetailedResults';
+import YourProfile from './YourProfile';
+import EditProfile from './EditProfile';
 
 const Layout = ({ children, pageTitle }) => {
   const navigate = useNavigate();
@@ -25,7 +27,7 @@ const Layout = ({ children, pageTitle }) => {
   };
 
   const goToProfile = () => {
-    navigate('/profile'); // Navigate to the profile page
+    navigate('/your-profile'); // Navigate to the profile page
   };
 
   return (
@@ -107,8 +109,8 @@ const App = () => {
         <Route path="/teams/:teamId/detailed-results" element={<Layout pageTitle="Detailed Results"><DetailedResults /></Layout>} />
 
         {/* Profile route */}
-        <Route path="/profile" element={<Layout pageTitle="Your Profile"><div>Profile Page</div></Layout>} />
-
+        <Route path="/your-profile" element={<Layout pageTitle="Your Profile"><YourProfile /></Layout>} />
+        <Route path="/edit-profile" element={<Layout pageTitle="Edit Profile"><EditProfile /></Layout>} />
         {/* Default route */}
         <Route path="/" element={<Navigate to="/Login" />} />
       </Routes>
