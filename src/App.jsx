@@ -64,13 +64,13 @@ const Layout = ({ children, pageTitle }) => {
               <div className="absolute top-19 left-1/2 transform -translate-x-1/2 bg-gray-900 p-4 rounded-md shadow-lg flex flex-col space-y-4 w-48 z-50">
                 <button
                   onClick={goToProfile}
-                  className="text-sm font-medium text-white bg-blue-600 px-4 py-2 rounded-md hover:bg-blue-700"
+                  className="text-sm font-medium text-white bg-black px-4 py-2 rounded-md border border-transparent hover:border-white transition duration-300"
                 >
                   Your Profile
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="text-sm font-medium text-black bg-white px-4 py-2 rounded-md hover:bg-red-600 transition"
+                  className="text-sm font-medium text-black bg-white px-4 py-2 rounded-md border border-transparent hover:border-black transition duration-300"
                 >
                   Log out
                 </button>
