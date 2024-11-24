@@ -1,38 +1,41 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import react from 'eslint-plugin-react'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
+import reactPlugin from 'eslint-plugin-react';
+import prettierPlugin from 'eslint-plugin-prettier';
 
 export default [
-  { ignores: ['dist'] },
-  {
-    files: ['**/*.{js,jsx}'],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
-      },
+    {
+        files: ['**/*.js', '**/*.jsx'], // Target all JavaScript and JSX files
+        ignores: ['node_modules/**'], // Ignore `node_modules`
+        languageOptions: {
+            ecmaVersion: 2021, // Enable modern JavaScript
+            sourceType: 'module', // Use ES modules
+            parserOptions: {
+                ecmaFeatures: {
+                    jsx: true, // Enable JSX syntax
+                },
+            },
+        },
+        plugins: {
+            react: reactPlugin, // React plugin
+            prettier: prettierPlugin, // Prettier plugin
+        },
+        rules: {
+            'react/react-in-jsx-scope': 'off', // Not needed for React 17+
+            'react/prop-types': 'off', // Disable PropTypes enforcement
+            'no-unused-vars': 'off', // Warn for unused variables
+            'no-console': 'off', // Warn for console.log usage
+            'no-debugger': 'error', // Disallow `debugger` statements
+            eqeqeq: ['error', 'always'], // Enforce strict equality
+            curly: ['error', 'all'], // Enforce curly braces for all control statements
+            'prettier/prettier': [
+                'error',
+                {
+                    singleQuote: true, // Use single quotes
+                    semi: true, // Enforce semicolons
+                    tabWidth: 4, // Set tab width to 4
+                    trailingComma: 'es5', // Add trailing commas in ES5-compliant syntax
+                    bracketSpacing: true, // Add spaces inside brackets
+                },
+            ],
+        },
     },
-    settings: { react: { version: '18.3' } },
-    plugins: {
-      react,
-      'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
-    },
-    rules: {
-      ...js.configs.recommended.rules,
-      ...react.configs.recommended.rules,
-      ...react.configs['jsx-runtime'].rules,
-      ...reactHooks.configs.recommended.rules,
-      'react/jsx-no-target-blank': 'off',
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
-    },
-  },
-]
+];
