@@ -82,7 +82,7 @@ const RoomList = () => {
             <button
               type="button"
               onClick={goBackHome}
-              className="px-4 py-2 bg-black text-white rounded-md border border-transparent hover:border-white transition duration-300"
+              className="px-4 py-2 bg-white text-black rounded-md border border-transparent hover:border-black transition duration-300"
               >
               Go back to Student Dashboard page
             </button>
