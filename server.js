@@ -509,6 +509,54 @@ app.delete('/teams/:teamId', verifyToken, async (req, res) => {
         });
     }
 });
+// Fetch specific team details by ID
+app.get('/teams/:id', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const team = await teamModel
+            .findById(id)
+            .populate('students', 'firstName lastName email'); // Populate student details
+
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        res.json(team);
+    } catch (error) {
+        console.error('Error fetching team data:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+// Update team details by ID
+app.put('/teams/:id', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, students } = req.body;
+
+        // Find the team
+        const team = await teamModel.findById(id);
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        // Verify that the logged-in teacher owns the team
+        if (!team.teacher.equals(req.user.id)) {
+            return res.status(403).json({ message: 'You are not authorized to edit this team' });
+        }
+
+        // Update the team's name and members
+        team.name = name || team.name;
+        team.students = students || team.students;
+
+        // Save the updated team to the database
+        const updatedTeam = await team.save();
+        res.status(200).json(updatedTeam);
+    } catch (error) {
+        console.error('Error updating team:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 
 app.get('/student/teams', verifyToken, async (req, res) => {
     try {
@@ -907,3 +955,4 @@ const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
