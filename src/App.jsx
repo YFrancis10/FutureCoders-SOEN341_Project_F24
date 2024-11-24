@@ -107,6 +107,8 @@ const App = () => {
         <Route path="/RoomList" element={<Layout pageTitle="Room List"><RoomList /></Layout>} />
         <Route path="/BookRoom/:roomId" element={<Layout pageTitle="Book Room"><BookRoom /></Layout>} />
         <Route path="/teams/:teamId/detailed-results" element={<Layout pageTitle="Detailed Results"><DetailedResults /></Layout>} />
+        
+        
 
         {/* Profile route */}
         <Route path="/your-profile" element={<Layout pageTitle=""><YourProfile /></Layout>} />
