@@ -77,6 +77,15 @@ const Login = () => {
             </div>
           </div>
 
+          <div className="mx-5 flex items-center justify-end cursor-pointer tracking-wider text-sm">
+              <p
+                onClick={() => navigate('/Email')}
+                className="text-black hover:underline cursor-pointer"
+              >
+                Forgot Password?
+              </p>
+           </div>
+
           {/* Login Button */}
           <div className='mx-5 my-7 py-2'>
           <button

@@ -108,13 +108,14 @@ const studyRoomSchema = new mongoose.Schema({
       date: String,
       startTime: String,
       endTime: String,
+      meetingName: String,
+      teamName: String, // Add teamName here
+      attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
     },
   ],
 });
 
 const studyRoomModel = mongoose.model('StudyRoom', studyRoomSchema);
-
-
 
 // To generate random ID
 // Function to generate a unique 8-digit ID between 40000000 and 50000000
@@ -490,7 +491,7 @@ app.get('/study-rooms', verifyToken, async (req, res) => {
 
 // Endpoint to fetch all rooms
 app.post('/book-room', verifyToken, async (req, res) => {
-  const { roomId, date, startTime, endTime, meetingName, attendees } = req.body;
+  const { roomId, date, startTime, endTime, meetingName, teamName, attendees } = req.body;
 
   try {
     const room = await studyRoomModel.findById(roomId);
@@ -498,7 +499,13 @@ app.post('/book-room', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Study room not found' });
     }
 
-    // Check for overlapping bookings
+    // Fetch the student's name
+    const student = await studentModel.findById(req.user.id).select('firstName lastName');
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Check for time slot availability
     const isAvailable = room.bookings.every(
       (booking) =>
         booking.date !== date ||
@@ -509,17 +516,19 @@ app.post('/book-room', verifyToken, async (req, res) => {
       return res.status(400).json({ message: 'This time slot is already taken. Please choose another.' });
     }
 
-    // Add booking with meeting details and attendees
+    // Add the booking with the reserver's name included
     room.bookings.push({
       student: req.user.id,
       date,
       startTime,
       endTime,
       meetingName,
+      teamName,
       attendees,
-    });
-    await room.save();
+      reserverName: `${student.firstName} ${student.lastName}`, // Save reserver's name here
+    });    
 
+    await room.save();
     res.status(200).json({ success: true, message: 'Room booked successfully!' });
   } catch (error) {
     console.error('Error booking room:', error);
@@ -546,6 +555,68 @@ const initializeRooms = async () => {
 };
 
 initializeRooms();
+
+// Get data to display meeting info in student dashboard page.
+app.get('/student/meetings', verifyToken, async (req, res) => {
+  try {
+    const meetings = await studyRoomModel.find({
+      'bookings.attendees': req.user.id, // Check if the logged-in user is in the attendees list
+    })
+      .populate('bookings.attendees', 'firstName lastName') // Populate attendee details
+      .populate('bookings.student', 'firstName lastName'); // Populate the reserver details
+
+    const studentMeetings = meetings.flatMap(room =>
+      room.bookings.filter(booking => booking.attendees.some(a => a._id.equals(req.user.id))).map(booking => ({
+        meetingName: booking.meetingName,
+        date: booking.date,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        roomName: room.roomName,
+        teamName: booking.teamName || 'N/A',
+        attendees: booking.attendees,
+        admin: `${booking.student.firstName} ${booking.student.lastName}` || 'Unknown', // Fetch the reserver's name
+      }))
+    );
+
+    res.status(200).json(studentMeetings);
+  } catch (error) {
+    console.error('Error fetching meetings:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+// Route to delete a specific meeting
+app.delete('/meetings/:meetingId', verifyToken, async (req, res) => {
+  const { meetingId } = req.params;
+
+  try {
+    // Find the room containing the booking
+    const room = await studyRoomModel.findOne({ 'bookings._id': meetingId });
+    if (!room) {
+      return res.status(404).json({ message: 'Meeting not found' });
+    }
+
+    // Find the specific booking within the room
+    const meeting = room.bookings.id(meetingId);
+    if (!meeting) {
+      return res.status(404).json({ message: 'Meeting not found in room' });
+    }
+
+    // Check if the logged-in user is the admin of the meeting
+    if (!meeting.student.equals(req.user.id)) {
+      return res.status(403).json({ message: 'You are not authorized to delete this meeting' });
+    }
+
+    // Remove the meeting from the bookings array
+    meeting.remove(); // This modifies the room object
+    await room.save(); // Save the updated room document
+
+    res.status(200).json({ success: true, message: 'Meeting deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting meeting:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 // Route to fetch detailed results for a specific team
 app.get('/teams/:teamId/detailed-results', verifyToken, async (req, res) => {
