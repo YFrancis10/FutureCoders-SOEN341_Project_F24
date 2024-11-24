@@ -108,14 +108,13 @@ const studyRoomSchema = new mongoose.Schema({
       date: String,
       startTime: String,
       endTime: String,
-      meetingName: String,
-      teamName: String, // Add teamName here
-      attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
     },
   ],
 });
 
 const studyRoomModel = mongoose.model('StudyRoom', studyRoomSchema);
+
+
 
 // To generate random ID
 // Function to generate a unique 8-digit ID between 40000000 and 50000000
@@ -263,30 +262,45 @@ app.post('/check-email', async (req, res) => {
 });
 
 // Route to change the user's password
-app.post('/change-password', async (req, res) => {
-  const { email, password } = req.body;
+app.post('/change-password', verifyToken, async (req, res) => {
+  const { password } = req.body;
+  const userId = req.user.id;
 
   try {
-    // Find the user by email in both student and teacher collections
-    const user = await studentModel.findOne({ email }) || await teacherModel.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found.' });
-    }
-
-    // Hash the new password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await studentModel.findById(userId) || await teacherModel.findById(userId);
 
-    // Update the user's password
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
     user.password = hashedPassword;
     await user.save();
 
     res.status(200).json({ success: true, message: 'Password updated successfully!' });
   } catch (error) {
-    console.error('Error updating password:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
+    res.status(500).json({ message: 'Error updating password' });
   }
 });
+
+// Route to reset the user's password
+app.post('/reset-password', async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await studentModel.findOne({ email }) || await teacherModel.findOne({ email });
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.password = hashedPassword;
+    await user.save();
+
+    res.status(200).json({ success: true, message: 'Password reset successfully!' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error resetting password' });
+  }
+});
+
+
 
 // Route to get all students
 app.get('/students', verifyToken, async (req, res) => {
@@ -491,7 +505,7 @@ app.get('/study-rooms', verifyToken, async (req, res) => {
 
 // Endpoint to fetch all rooms
 app.post('/book-room', verifyToken, async (req, res) => {
-  const { roomId, date, startTime, endTime, meetingName, teamName, attendees } = req.body;
+  const { roomId, date, startTime, endTime, meetingName, attendees } = req.body;
 
   try {
     const room = await studyRoomModel.findById(roomId);
@@ -499,13 +513,7 @@ app.post('/book-room', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Study room not found' });
     }
 
-    // Fetch the student's name
-    const student = await studentModel.findById(req.user.id).select('firstName lastName');
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
-    }
-
-    // Check for time slot availability
+    // Check for overlapping bookings
     const isAvailable = room.bookings.every(
       (booking) =>
         booking.date !== date ||
@@ -516,19 +524,17 @@ app.post('/book-room', verifyToken, async (req, res) => {
       return res.status(400).json({ message: 'This time slot is already taken. Please choose another.' });
     }
 
-    // Add the booking with the reserver's name included
+    // Add booking with meeting details and attendees
     room.bookings.push({
       student: req.user.id,
       date,
       startTime,
       endTime,
       meetingName,
-      teamName,
       attendees,
-      reserverName: `${student.firstName} ${student.lastName}`, // Save reserver's name here
-    });    
-
+    });
     await room.save();
+
     res.status(200).json({ success: true, message: 'Room booked successfully!' });
   } catch (error) {
     console.error('Error booking room:', error);
@@ -555,68 +561,6 @@ const initializeRooms = async () => {
 };
 
 initializeRooms();
-
-// Get data to display meeting info in student dashboard page.
-app.get('/student/meetings', verifyToken, async (req, res) => {
-  try {
-    const meetings = await studyRoomModel.find({
-      'bookings.attendees': req.user.id, // Check if the logged-in user is in the attendees list
-    })
-      .populate('bookings.attendees', 'firstName lastName') // Populate attendee details
-      .populate('bookings.student', 'firstName lastName'); // Populate the reserver details
-
-    const studentMeetings = meetings.flatMap(room =>
-      room.bookings.filter(booking => booking.attendees.some(a => a._id.equals(req.user.id))).map(booking => ({
-        meetingName: booking.meetingName,
-        date: booking.date,
-        startTime: booking.startTime,
-        endTime: booking.endTime,
-        roomName: room.roomName,
-        teamName: booking.teamName || 'N/A',
-        attendees: booking.attendees,
-        admin: `${booking.student.firstName} ${booking.student.lastName}` || 'Unknown', // Fetch the reserver's name
-      }))
-    );
-
-    res.status(200).json(studentMeetings);
-  } catch (error) {
-    console.error('Error fetching meetings:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
-// Route to delete a specific meeting
-app.delete('/meetings/:meetingId', verifyToken, async (req, res) => {
-  const { meetingId } = req.params;
-
-  try {
-    // Find the room containing the booking
-    const room = await studyRoomModel.findOne({ 'bookings._id': meetingId });
-    if (!room) {
-      return res.status(404).json({ message: 'Meeting not found' });
-    }
-
-    // Find the specific booking within the room
-    const meeting = room.bookings.id(meetingId);
-    if (!meeting) {
-      return res.status(404).json({ message: 'Meeting not found in room' });
-    }
-
-    // Check if the logged-in user is the admin of the meeting
-    if (!meeting.student.equals(req.user.id)) {
-      return res.status(403).json({ message: 'You are not authorized to delete this meeting' });
-    }
-
-    // Remove the meeting from the bookings array
-    meeting.remove(); // This modifies the room object
-    await room.save(); // Save the updated room document
-
-    res.status(200).json({ success: true, message: 'Meeting deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting meeting:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
 
 // Route to fetch detailed results for a specific team
 app.get('/teams/:teamId/detailed-results', verifyToken, async (req, res) => {
@@ -675,6 +619,57 @@ app.get('/teams/:teamId/detailed-results', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
+// Route to fetch the logged-in user's profile
+app.get('/profile', verifyToken, async (req, res) => {
+  try {
+    const user = await studentModel.findById(req.user.id).select('-password') ||
+                 await teacherModel.findById(req.user.id).select('-password');
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+// Route to update the logged-in user's profile
+app.put('/profile', verifyToken, async (req, res) => {
+  const { firstName, lastName, email, password } = req.body;
+
+  try {
+    const user = await studentModel.findById(req.user.id) ||
+                 await teacherModel.findById(req.user.id);
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Update allowed fields
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (email) user.email = email;
+    if (password) user.password = await bcrypt.hash(password, 10);
+
+    await user.save();
+    res.status(200).json({ success: true, message: 'Profile updated successfully!' });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+// Route to delete the logged-in user's account
+app.delete('/profile', verifyToken, async (req, res) => {
+  try {
+    const user = await studentModel.findByIdAndDelete(req.user.id) ||
+                 await teacherModel.findByIdAndDelete(req.user.id);
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.status(200).json({ success: true, message: 'Account deleted successfully!' });
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
