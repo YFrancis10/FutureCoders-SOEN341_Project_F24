@@ -39,8 +39,9 @@ describe('Log-in Page', () => {
   it("submits", async () => {
     const handleSubmit = jest.fn();
     render(<Router> <Login onSubmit={handleSubmit} /> </Router>);
-    const rangeinput=screen.getByLabelText('Email');
-    const rangeinput2=screen.getByLabelText('Password');
+    //const rangeinput=screen.getByLabelText('Email');
+    const rangeinput=screen.getByTestId("boob");
+    const rangeinput2=screen.getByTestId("test2");
     fireEvent.change(rangeinput,{target:{value: 'email'}});
     fireEvent.change(rangeinput2,{target:{value: 'password'}});
     
