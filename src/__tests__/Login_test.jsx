@@ -59,13 +59,20 @@ describe('Log-in Page', () => {
     useState.mockImplementationOnce(()=>[]);
 
   });
-  it('hello',async () => {
+  it('Testing forgotten password',async () => {
     render(<Router><Login /></Router>);
     const huh = screen.getByTestId("ass");
     fireEvent.click(huh);
 expect(mockedNavigate).toHaveBeenLastCalledWith('/Email');
   }); 
-  /*it('Bad log in', async () => {
+
+  it('Testing sign-up redirection',async () => {
+    render(<Router><Login /></Router>);
+    const hu = screen.getByTestId("hello");
+    fireEvent.click(hu);
+    expect(mockedNavigate).toHaveBeenLastCalledWith('/Signup');
+  }); 
+  /*it('Bad log in', async () => {Don't have an account
     axios.get.mockImplementation(() => Promise.resolve({ status:  }))
 
     render(

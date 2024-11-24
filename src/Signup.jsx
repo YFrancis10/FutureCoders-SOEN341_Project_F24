@@ -99,8 +99,9 @@ const Signup = () => {
         <p className="mt-4 text-center">
           Already have an account?{' '}
           <span
-            className="text-blue-600 cursor-pointer hover:underline"
             onClick={() => navigate('/login')}
+            className="text-blue-600 cursor-pointer hover:underline"
+            data-testid="existing"
           >
             Log in
           </span>
