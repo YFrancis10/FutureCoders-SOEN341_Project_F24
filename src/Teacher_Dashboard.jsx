@@ -298,6 +298,7 @@ const TeacherDashboard = () => {
                         <button
                             onClick={handleCreateTeam}
                             className="mt-4 px-4 py-2 bg-green-500 text-white rounded-md text-lg hover:bg-green-600"
+                             data-testid="mess"
                         >
                             + Create a new team
                         </button>

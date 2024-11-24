@@ -129,7 +129,7 @@ const Login = () => {
                             <span
                                
                                 onClick={() => navigate('/Signup')}
-                                className="text-blue-600 cursor-pointer hover:underline"
+                                 className="text-blue-600 cursor-pointer hover:underline"
                                 data-testid="hello"
                             >
                                 Sign Up

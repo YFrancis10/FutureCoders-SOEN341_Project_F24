@@ -25,45 +25,15 @@ describe('Teacher Sign-in', () => {
    
     //expect(screen.get
   });
-  it('Team creation button',() => {
+  it('Team creation button',async () => {
     render(<Router><Teacher_Dashboard /></Router>);
-    const hu = screen.getByTestId("existing");
+    axios.get.mock
+    const hu = screen.getByTestId("create");
     fireEvent.click(hu);
-    expect(mockedNavigate).toHaveBeenLastCalledWith('/login');
+    expect(mockedNavigate).toHaveBeenLastCalledWith('/Teams');
   });
   
-  it('Testing existing acco',() => {
-    render(<Router><Teacher_Dashboard /></Router>);
-    const hu = screen.getByTestId("existing");
-    fireEvent.click(hu);
-    expect(mockedNavigate).toHaveBeenLastCalledWith('/login');
-  });
+ 
 
 });
-describe('team creation', () => {
 
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-  
-    it('renders teacher dashboard page', async () => {
-      render(<Router><Teacher_Dashboard /></Router>); //renders the teacher dashboard
-  
-     
-      //expect(screen.get
-    });
-    it('Team creation button',() => {
-      render(<Router><Teacher_Dashboard /></Router>);
-      const hu = screen.getByTestId("existing");
-      fireEvent.click(hu);
-      expect(mockedNavigate).toHaveBeenLastCalledWith('/login');
-    });
-    
-    it('Testing existing acco',() => {
-      render(<Router><Teacher_Dashboard /></Router>);
-      const hu = screen.getByTestId("existing");
-      fireEvent.click(hu);
-      expect(mockedNavigate).toHaveBeenLastCalledWith('/login');
-    });
-  
-  });
