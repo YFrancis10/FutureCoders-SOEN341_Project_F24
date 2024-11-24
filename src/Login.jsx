@@ -77,11 +77,20 @@ const Login = () => {
             </div>
           </div>
 
+          <div className="mx-5 flex items-center justify-end cursor-pointer tracking-wider text-sm">
+              <p
+                onClick={() => navigate('/Email')}
+                className="text-black hover:underline cursor-pointer"
+              >
+                Forgot Password?
+              </p>
+           </div>
+
           {/* Login Button */}
           <div className='mx-5 my-7 py-2'>
           <button
             type="submit"
-            className="bg-black w-full h-[35px] rounded-sm text text-white"
+            className="bg-black w-full h-[35px] text-white rounded-md border border-transparent hover:border-white transition duration-300"
             >
             Log In
           </button>
