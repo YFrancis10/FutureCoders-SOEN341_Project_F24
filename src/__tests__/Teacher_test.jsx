@@ -19,19 +19,20 @@ describe('Teacher Sign-in', () => {
     jest.clearAllMocks();
   });
 
-  it('renders loading page', async () => {
+  it('renders teacher dashboard page', async () => {
     render(<Router><Teacher_Dashboard /></Router>); //renders the teacher dashboard
-    
+
    
     //expect(screen.get
   });
-  it('Creates new account',() => {
+  it('Team creation button',() => {
     render(<Router><Teacher_Dashboard /></Router>);
-    const hu = screen.getByTestId("existing");
+   
     fireEvent.click(hu);
     expect(mockedNavigate).toHaveBeenLastCalledWith('/login');
   });
-  it('Testing existing account redirect',() => {
+  
+  it('Testing existing acco',() => {
     render(<Router><Teacher_Dashboard /></Router>);
     const hu = screen.getByTestId("existing");
     fireEvent.click(hu);
@@ -39,3 +40,30 @@ describe('Teacher Sign-in', () => {
   });
 
 });
+describe('team creation', () => {
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+  
+    it('renders teacher dashboard page', async () => {
+      render(<Router><Teacher_Dashboard /></Router>); //renders the teacher dashboard
+  
+     
+      //expect(screen.get
+    });
+    it('Team creation button',() => {
+      render(<Router><Teacher_Dashboard /></Router>);
+      const hu = screen.getByTestId("existing");
+      fireEvent.click(hu);
+      expect(mockedNavigate).toHaveBeenLastCalledWith('/login');
+    });
+    
+    it('Testing existing acco',() => {
+      render(<Router><Teacher_Dashboard /></Router>);
+      const hu = screen.getByTestId("existing");
+      fireEvent.click(hu);
+      expect(mockedNavigate).toHaveBeenLastCalledWith('/login');
+    });
+  
+  });
