@@ -109,8 +109,8 @@ const App = () => {
         <Route path="/teams/:teamId/detailed-results" element={<Layout pageTitle="Detailed Results"><DetailedResults /></Layout>} />
 
         {/* Profile route */}
-        <Route path="/your-profile" element={<Layout pageTitle="Your Profile"><YourProfile /></Layout>} />
-        <Route path="/edit-profile" element={<Layout pageTitle="Edit Profile"><EditProfile /></Layout>} />
+        <Route path="/your-profile" element={<Layout pageTitle=""><YourProfile /></Layout>} />
+        <Route path="/edit-profile" element={<Layout pageTitle=""><EditProfile /></Layout>} />
         {/* Default route */}
         <Route path="/" element={<Navigate to="/Login" />} />
       </Routes>
