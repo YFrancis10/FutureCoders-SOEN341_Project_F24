@@ -46,7 +46,8 @@ const YourProfile = () => {
     }
 
     return (
-        <div className="max-w-3xl mx-auto p-4">
+        <div className="max-w-3xl mx-auto p-4 bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-gray-200 glass">
+          
             <h1 className="text-2xl font-bold mb-4">Your Profile</h1>
             <div className="space-y-2">
                 <p>
@@ -70,14 +71,14 @@ const YourProfile = () => {
             <div className="mt-4 space-x-4">
                 <button
                     onClick={() => navigate('/edit-profile')}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md"
-                >
+                    className="px-4 py-2 bg-white text-black rounded-md border border-transparent hover:border-black transition duration-300"
+                    >
                     Edit Profile
                 </button>
                 <button
                     onClick={handleDeleteAccount}
-                    className="px-4 py-2 bg-red-500 text-white rounded-md"
-                >
+                    className="px-4 py-2 bg-black text-white rounded-md border border-transparent hover:border-white transition duration-300"
+                    >
                     Delete Account
                 </button>
             </div>
