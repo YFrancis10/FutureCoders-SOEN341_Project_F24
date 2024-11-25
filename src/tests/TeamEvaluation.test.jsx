@@ -1,167 +1,123 @@
-// // import React from 'react';
-// // import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-// // import TeamEvaluation from './Team_Evaluation'; // Adjust the import based on your file structure
-// // import {
-// //     BrowserRouter as Router,
-// //     useNavigate,
-// //     useLocation,
-// // } from 'react-router-dom';
+import React from 'react';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import TeamEvaluation from '../Team_Evaluation';
 
-// // // Mocking the navigate and location functions from react-router-dom
-// // jest.mock('react-router-dom', () => ({
-// //     ...jest.requireActual('react-router-dom'), // Keep the real imports of react-router-dom
-// //     useLocation: jest.fn(),
-// //     useNavigate: jest.fn(),
-// // }));
+jest.mock('react-router-dom', () => ({
+    ...jest.requireActual('react-router-dom'),
+    useLocation: jest.fn(),
+    useNavigate: jest.fn(),
+}));
 
-// // describe('TeamEvaluation Component', () => {
-// //     const mockNavigate = jest.fn();
-// //     const mockLocation = {
-// //         state: {
-// //             team: {
-// //                 _id: 'team-id',
-// //                 name: 'Team Alpha',
-// //                 students: [
-// //                     { _id: 'student1', firstName: 'John', lastName: 'Doe' },
-// //                     { _id: 'student2', firstName: 'Jane', lastName: 'Doe' },
-// //                 ],
-// //             },
-// //             student: { _id: 'student1', firstName: 'John', lastName: 'Doe' },
-// //         },
-// //     };
+describe('TeamEvaluation Component', () => {
+    const mockNavigate = jest.fn();
+    const mockUseLocation = {
+        state: {
+            team: {
+                _id: 'team1',
+                name: 'Team Alpha',
+                students: [
+                    { _id: 'student1', firstName: 'Alice', lastName: 'Johnson' },
+                    { _id: 'student2', firstName: 'Bob', lastName: 'Smith' },
+                ],
+            },
+            student: { _id: 'student1', firstName: 'Alice', lastName: 'Johnson' },
+        },
+    };
 
-// //     beforeEach(() => {
-// //         jest.clearAllMocks();
-// //         // Mock the navigate function
-// //         useNavigate.mockReturnValue(mockNavigate);
-// //         // Mock the useLocation hook to simulate the provided state
-// //         useLocation.mockReturnValue(mockLocation);
-// //     });
+    beforeEach(() => {
+        jest.clearAllMocks();
+        require('react-router-dom').useLocation.mockReturnValue(mockUseLocation);
+        require('react-router-dom').useNavigate.mockReturnValue(mockNavigate);
+    });
 
-// //     it('renders the form and displays team name', () => {
-// //         render(
-// //             <Router>
-// //                 <TeamEvaluation />
-// //             </Router>
-// //         );
+    it('renders the team name', () => {
+        render(
+            <Router>
+                <TeamEvaluation />
+            </Router>
+        );
+        expect(screen.getByText(/Evaluate Team: Team Alpha/i)).toBeInTheDocument();
+    });
 
-// //         expect(
-// //             screen.getByText('Evaluate Team: Team Alpha')
-// //         ).toBeInTheDocument();
-// //         expect(
-// //             screen.getByText(/Select teammates to evaluate:/i)
-// //         ).toBeInTheDocument();
-// //         expect(screen.getByText('Select evaluation type:')).toBeInTheDocument();
-// //     });
+    it('displays teammates except the logged-in student', () => {
+        render(
+            <Router>
+                <TeamEvaluation />
+            </Router>
+        );
+        expect(screen.getByText(/Bob Smith/i)).toBeInTheDocument();
+        expect(screen.queryByText(/Alice Johnson/i)).not.toBeInTheDocument();
+    });
 
-// //     it('should allow selecting teammates and evaluation type', () => {
-// //         render(
-// //             <Router>
-// //                 <TeamEvaluation />
-// //             </Router>
-// //         );
+    it('allows selecting and deselecting teammates', () => {
+        render(
+            <Router>
+                <TeamEvaluation />
+            </Router>
+        );
 
-// //         // Select teammates
-// //         const teammateCheckbox = screen.getByLabelText(/Jane Doe/i);
-// //         fireEvent.click(teammateCheckbox);
+        const checkbox = screen.getByLabelText(/Bob Smith/i);
 
-// //         // Select evaluation type
-// //         const select = screen.getByRole('combobox');
-// //         fireEvent.change(select, { target: { value: 'Type1' } });
+        // Select teammate
+        fireEvent.click(checkbox);
+        expect(checkbox).toBeChecked();
 
-// //         // Check that the checkbox and select input are updated correctly
-// //         expect(teammateCheckbox).toBeChecked();
-// //         expect(select.value).toBe('Type1');
-// //     });
+        // Deselect teammate
+        fireEvent.click(checkbox);
+        expect(checkbox).not.toBeChecked();
+    });
 
-// //     it('should show alert if no teammates are selected and evaluation type is not chosen', async () => {
-// //         render(
-// //             <Router>
-// //                 <TeamEvaluation />
-// //             </Router>
-// //         );
+    it('alerts when submitting without selecting teammates', () => {
+        jest.spyOn(window, 'alert').mockImplementation(() => {});
 
-// //         const submitButton = screen.getByRole('button', { name: /Rate/i });
+        render(
+            <Router>
+                <TeamEvaluation />
+            </Router>
+        );
 
-// //         // Mock window.alert to check if it's called
-// //         window.alert = jest.fn();
+        const submitButton = screen.getByText(/Submit Evaluation/i);
+        fireEvent.click(submitButton);
 
-// //         fireEvent.click(submitButton);
+        expect(window.alert).toHaveBeenCalledWith('Please select at least one teammate.');
+    });
 
-// //         await waitFor(() => {
-// //             expect(window.alert).toHaveBeenCalledWith(
-// //                 'Please select at least one teammate and an evaluation type.'
-// //             );
-// //         });
-// //     });
+    it('navigates back to the dashboard', () => {
+        render(
+            <Router>
+                <TeamEvaluation />
+            </Router>
+        );
 
-// //     it('should navigate to the correct page when form is submitted with valid data', async () => {
-// //         render(
-// //             <Router>
-// //                 <TeamEvaluation />
-// //             </Router>
-// //         );
+        const goBackButton = screen.getByText(/Go back/i);
+        fireEvent.click(goBackButton);
 
-// //         // Select teammates
-// //         const teammateCheckbox = screen.getByLabelText(/Jane Doe/i);
-// //         fireEvent.click(teammateCheckbox);
+        expect(mockNavigate).toHaveBeenCalledWith('/Student_Dashboard');
+    });
 
-// //         // Select evaluation type
-// //         const select = screen.getByRole('combobox');
-// //         fireEvent.change(select, { target: { value: 'Type1' } });
+    it('submits selected teammates and navigates to the cooperation page', () => {
+        render(
+            <Router>
+                <TeamEvaluation />
+            </Router>
+        );
 
-// //         // Submit the form
-// //         const submitButton = screen.getByRole('button', { name: /Rate/i });
-// //         fireEvent.click(submitButton);
+        const checkbox = screen.getByLabelText(/Bob Smith/i);
+        const submitButton = screen.getByText(/Submit Evaluation/i);
 
-// //         await waitFor(() => {
-// //             expect(mockNavigate).toHaveBeenCalledWith('/Cooperation', {
-// //                 state: {
-// //                     selectedTeammates: [
-// //                         { _id: 'student2', firstName: 'Jane', lastName: 'Doe' },
-// //                     ],
-// //                     teamName: 'Team Alpha',
-// //                     teamId: 'team-id',
-// //                     evaluationType: 'Type1',
-// //                 },
-// //             });
-// //         });
-// //     });
-// // });
+        // Select teammate
+        fireEvent.click(checkbox);
 
-// import React from 'react';
-// import { render, screen } from '@testing-library/react';
-// import { MemoryRouter } from 'react-router-dom';
-// import TeamEvaluation from '../Team_Evaluation';
+        // Submit form
+        fireEvent.click(submitButton);
 
-// describe('TeamEvaluation', () => {
-//   it('renders the team evaluation form', () => {
-//     render(
-//       <MemoryRouter>
-//         <TeamEvaluation />
-//       </MemoryRouter>
-//     );
-
-//     expect(screen.getByText(/Team Evaluation/i)).toBeInTheDocument();
-//     expect(screen.getByLabelText(/Overall Rating/i)).toBeInTheDocument();
-//     expect(screen.getByLabelText(/Comments/i)).toBeInTheDocument();
-//   });
-
-//   it('shows an error if required fields are empty', () => {
-//     render(
-//       <MemoryRouter>
-//         <TeamEvaluation />
-//       </MemoryRouter>
-//     );
-
-//     const submitButton = screen.getByText(/Submit Rating/i);
-//     submitButton.click();
-
-//     expect(screen.getByText(/Please select a valid rating/i)).toBeInTheDocument();
-//   });
-// });
-xit('renders without crashing', () => {
-    // Your test code here (it will be skipped)
-    expect(true).toBe(true);
-  });
-  
+        expect(mockNavigate).toHaveBeenCalledWith('/Cooperation', {
+            state: {
+                selectedTeammates: [{ _id: 'student2', firstName: 'Bob', lastName: 'Smith' }],
+                teamName: 'Team Alpha',
+                teamId: 'team1',
+            },
+        });
+    });
+});
