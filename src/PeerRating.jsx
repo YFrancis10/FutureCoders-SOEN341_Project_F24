@@ -236,14 +236,6 @@ const PeerRating = () => {
                             >
                                 Submit Rating
                             </button>
-
-                            {/* Logout Button */}
-                            <button
-                                onClick={handleLogout}
-                                className="px-4 py-2 bg-white text-black rounded-md border border-transparent hover:border-black hover:bg-gray-300 hover:text-black transition duration-300"
-                                >
-                                Log out
-                            </button>
                             </div>
                         </div>
                     </div>
