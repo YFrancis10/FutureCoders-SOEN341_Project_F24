@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-//import { userNavigation } from '<source />navigation';
 
 const Cooperation = () => {
     const location = useLocation();
