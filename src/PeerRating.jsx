@@ -229,9 +229,10 @@ const PeerRating = () => {
                             )}
 
                             {/* Submit Button */}
+                            <div className="mt-6 flex gap-4">
                             <button
                                 onClick={submitRating}
-                                className="mt-6 inline-flex justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-lg font-medium text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                                className="bg-black text-white px-4 py-2 rounded-md border border-transparent hover:border-white transition duration-300"
                             >
                                 Submit Rating
                             </button>
@@ -239,10 +240,11 @@ const PeerRating = () => {
                             {/* Logout Button */}
                             <button
                                 onClick={handleLogout}
-                                className="mt-4 inline-flex justify-center rounded-md border border-transparent bg-red-600 py-2 px-4 text-lg font-medium text-white hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                            >
+                                className="px-4 py-2 bg-white text-black rounded-md border border-transparent hover:border-black hover:bg-gray-300 hover:text-black transition duration-300"
+                                >
                                 Log out
                             </button>
+                            </div>
                         </div>
                     </div>
                 </div>
