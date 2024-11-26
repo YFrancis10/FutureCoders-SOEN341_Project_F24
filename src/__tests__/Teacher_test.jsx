@@ -1,3 +1,32 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+the issue is with the axios.get calls. I have no clue what I'm doing wrong with the formatting of the teacher, team or student objects or if there is a timing error
+the error in question:
+
+          Error fetching teacher data: TypeError: Cannot read properties of undefined (reading 'data')
+          at data (C:\Users\benap\FutureCoders-SOEN341_Project_F24\src\Teacher_Dashboard.jsx:26:37)
+          at processTicksAndRejections (node:internal/process/task_queues:95:5)
+Attempted changes to Teacher data:
+          ->Defining team as empty array
+          ->Removed team definition completely
+          ->defined team seperately and then defined the mock teacher after with the mock team included
+          -> added data: into the definition
+
+          -> replaced current function with: 
+             axios.get.mockImplementation((url) => {
+              if (url === 'http://localhost:5001/teacher/me') {
+                return Promise.resolve({ data: mockTeacherData });
+              }
+              if (url === 'http://localhost:5001/teacher/teams') {
+                  return Promise.resolve({ data: mockTeamsData });
+               }
+});
+
+*/
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -37,14 +66,6 @@ describe('TeacherDashboard Component', () => {
   });
 
   it('fetches and displays teacher and team data', async () => {
-    const mockTeacherData = {
-      data: {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        role: 'Teacher',
-      },
-    };
     const mockTeamsData = {
       data: [
         {
@@ -57,6 +78,15 @@ describe('TeacherDashboard Component', () => {
         },
       ],
     }
+    const mockTeacherData = {
+      data: {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'john.doe@example.com',
+        role: 'Teacher',
+        team:[mockTeamsData]
+      },
+    };
 
     axios.get
       .mockResolvedValueOnce({ data: mockTeacherData }) // First API call for teacher data
@@ -72,7 +102,7 @@ describe('TeacherDashboard Component', () => {
     await waitFor(() => {
       expect(screen.getByText(/welcome, John Doe/i)).toBeInTheDocument();
       expect(screen.getByText(/email: john.doe@example.com/i)).toBeInTheDocument();
-      expect(screen.getByText(/team alpha/i)).toBeInTheDocument();
+      expect(screen.getByText(/test/i)).toBeInTheDocument();
       expect(screen.getByText(/alice smith/i)).toBeInTheDocument();
       expect(screen.getByText(/bob brown/i)).toBeInTheDocument();
     });
@@ -101,7 +131,7 @@ describe('TeacherDashboard Component', () => {
     const mockTeamsData = [
       {
         id: '1',
-        name: 'Team Alpha',
+        name: 'test',
         students: [],
       },
     ];
@@ -119,7 +149,7 @@ describe('TeacherDashboard Component', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/team test/i)).toBeInTheDocument();
+      expect(screen.getByText(/test/i)).toBeInTheDocument();
     });
 
     const deleteButton = screen.getByText(/delete team/i);
@@ -132,7 +162,7 @@ describe('TeacherDashboard Component', () => {
         'http://localhost:5001/teams/1',
         expect.anything()
       );
-      expect(screen.queryByText(/team team/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/test/i)).not.toBeInTheDocument();
     });
   });
 });
