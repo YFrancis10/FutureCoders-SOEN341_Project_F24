@@ -16,6 +16,8 @@ import BookRoom from './BookRoom';
 import DetailedResults from './DetailedResults';
 import YourProfile from './YourProfile';
 import EditProfile from './EditProfile';
+import EditMeeting from './EditMeeting';
+// import YourComments from './YourComments';
 
 const Layout = ({ children, pageTitle }) => {
   const navigate = useNavigate();
@@ -107,6 +109,8 @@ const App = () => {
         <Route path="/RoomList" element={<Layout pageTitle="Room List"><RoomList /></Layout>} />
         <Route path="/BookRoom/:roomId" element={<Layout pageTitle="Book Room"><BookRoom /></Layout>} />
         <Route path="/teams/:teamId/detailed-results" element={<Layout pageTitle="Detailed Results"><DetailedResults /></Layout>} />
+        <Route path="/EditMeeting" element={<Layout pageTitle="Edit Meeting"><EditMeeting /></Layout>} />
+        {/* <Route path="/your-comments" element={<Layout pageTitle="Your Comments"><YourComments /></Layout>} /> */}
 
         {/* Profile route */}
         <Route path="/your-profile" element={<Layout pageTitle=""><YourProfile /></Layout>} />
