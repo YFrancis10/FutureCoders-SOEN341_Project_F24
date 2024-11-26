@@ -30,7 +30,7 @@ Attempted changes to Teacher data:
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import axios from 'axios';
 import Teacher_Dashboard from '../Teacher_Dashboard';
 import { useNavigate } from 'react-router-dom';
@@ -57,9 +57,9 @@ describe('TeacherDashboard Component', () => {
 
   it('renders loading state initially', () => {
     render(
-      <BrowserRouter>
+      <Router>
         <Teacher_Dashboard />
-      </BrowserRouter>
+      </Router>
     );
 
     expect(screen.getByText(/loading.../i)).toBeInTheDocument();
@@ -93,9 +93,9 @@ describe('TeacherDashboard Component', () => {
       .mockResolvedValueOnce({ data: mockTeamsData }); // Second API call for teams data
 
     render(
-      <BrowserRouter>
+      <Router>
         <Teacher_Dashboard />
-      </BrowserRouter>
+      </Router>
     );
 
     // Wait for the API call to finish and the DOM to update
@@ -110,9 +110,9 @@ describe('TeacherDashboard Component', () => {
 
   it('navigates to the team creation page on button click', async () => {
     render(
-      <BrowserRouter>
+      <Router>
         <Teacher_Dashboard />
-      </BrowserRouter>
+      </Router>
     );
 
     const createTeamButton = screen.getByTestId('mess');
@@ -143,9 +143,9 @@ describe('TeacherDashboard Component', () => {
     axios.delete.mockResolvedValueOnce({});
 
     render(
-      <BrowserRouter>
+      <Router>
         <Teacher_Dashboard />
-      </BrowserRouter>
+      </Router>
     );
 
     await waitFor(() => {
