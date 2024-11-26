@@ -179,6 +179,7 @@ const BookRoom = () => {
                                 </label>
                                 <input
                                     type="text"
+                                    data-testid="meat"
                                     value={meetingName}
                                     onChange={(e) =>
                                         setMeetingName(e.target.value)
@@ -221,6 +222,7 @@ const BookRoom = () => {
                                     Date:
                                 </label>
                                 <input
+                                    data-testid="cal"
                                     type="date"
                                     value={date}
                                     onChange={(e) => setDate(e.target.value)}
@@ -233,6 +235,7 @@ const BookRoom = () => {
                                     Start Time:
                                 </label>
                                 <input
+                                    data-testid="debut"
                                     type="time"
                                     value={startTime}
                                     onChange={(e) =>
@@ -247,6 +250,7 @@ const BookRoom = () => {
                                     End Time:
                                 </label>
                                 <input
+                                    data-testid="fin"
                                     type="time"
                                     value={endTime}
                                     onChange={(e) => setEndTime(e.target.value)}
@@ -276,6 +280,7 @@ const BookRoom = () => {
                                     Go back to Room List Page
                                 </button>
                                 <button
+                                    data-testid="cubnit"
                                     type="submit"
                                     className="px-4 py-2 bg-black text-white rounded-md border border-transparent hover:border-white transition duration-300"
                                 >
