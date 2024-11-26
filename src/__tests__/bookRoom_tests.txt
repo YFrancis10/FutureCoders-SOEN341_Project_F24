@@ -83,5 +83,6 @@ it('exceeds maximum room size', async () =>  {
         }),
         expect.any(Object) // Check headers
     );
+    //if time permits, add two more test cases: one for navigation and one for form clearing
 }); 
 });

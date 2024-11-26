@@ -136,6 +136,7 @@ const Signup = () => {
                         </div>
                         <div className="mx-5 my-7 py-2">
                             <button
+                                data-testid="cubnit"
                                 type="submit"
                                 className="bg-black w-full h-[35px] text-white rounded-md border border-transparent hover:border-white transition duration-300"
                             >
