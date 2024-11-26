@@ -5,6 +5,7 @@ import axios from 'axios';
 const TeacherDashboard = () => {
     const [teacher, setTeacher] = useState(null);
     const [teams, setTeams] = useState([]);
+    const [commentsVisible, setCommentsVisible] = useState(false); // Add this state
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -26,6 +27,15 @@ const TeacherDashboard = () => {
                     }
                 );
                 setTeams(teamsResponse.data);
+
+                // Fetch initial visibility state from backend
+                const visibilityResponse = await axios.get(
+                    'http://localhost:5001/comments-visibility',
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
+                );
+                setCommentsVisible(visibilityResponse.data.visible);
             } catch (error) {
                 console.error('Error fetching teacher data:', error);
             }
@@ -34,6 +44,26 @@ const TeacherDashboard = () => {
         fetchTeacherData();
     }, []);
 
+    /* const toggleCommentsVisibility = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const newVisibility = !commentsVisible;
+
+            await axios.post(
+                'http://localhost:5001/comments-visibility',
+                { visible: newVisibility },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+
+            setCommentsVisible(newVisibility); // Update state
+        } catch (error) {
+            console.error('Error toggling comments visibility:', error);
+            alert('Failed to update comments visibility');
+        }
+    };
+ */
     const handleCreateTeam = () => {
         navigate('/Teams');
     };
@@ -58,11 +88,6 @@ const TeacherDashboard = () => {
         }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        navigate('/login');
-    };
-
     if (!teacher) {
         return <p className="text-center text-gray-600 mt-10">Loading...</p>;
     }
@@ -77,6 +102,19 @@ const TeacherDashboard = () => {
                     </h2>
                     <p className="text-gray-300">Email: {teacher.email}</p>
                     <p className="text-gray-300">Role: {teacher.role}</p>
+
+                    {/* Add Comments Visibility Switch */}
+                    {/* <div className="mt-4">
+                        <label className="text-gray-300">
+                            Enable Anonymous Comments Visibility:
+                        </label>
+                        <input
+                            type="checkbox"
+                            checked={commentsVisible}
+                            onChange={toggleCommentsVisibility}
+                            className="ml-2"
+                        />
+                    </div> */}
                 </section>
 
                 {/* Teams Section */}
@@ -122,10 +160,8 @@ const TeacherDashboard = () => {
                                             Display Team's Results
                                         </button>
                                         <button
-                                            onClick={() =>
-                                                handleDeleteTeam(team.id, team.name)
-                                            }
-                                            className="bg-red-600 text-white px-4 py-2 rounded-md border border-transparent hover:border-white transition duration-300"
+                                            onClick={() => handleDeleteTeam(team.id, team.name)}
+                                            className="bg-white text-black px-4 py-2 rounded-md border border-transparent hover:border-black transition duration-300"
                                         >
                                             Delete Team
                                         </button>

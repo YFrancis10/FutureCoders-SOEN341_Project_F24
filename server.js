@@ -74,22 +74,21 @@ const teamModel = mongoose.model('Teams', teamSchema);
 
 // Verify Token Middleware
 const verifyToken = (req, res, next) => {
-    const token =
-        req.headers.authorization && req.headers.authorization.split(' ')[1];
+    const token = req.headers.authorization?.split(' ')[1];
     if (!token) {
         return res.status(403).json({ message: 'No token provided' });
     }
 
     jwt.verify(token, 'your-secret-key', (err, decoded) => {
         if (err) {
-            return res
-                .status(500)
-                .json({ message: 'Failed to authenticate token' });
+            console.error('JWT verification failed:', err);
+            return res.status(403).json({ message: 'Invalid token' });
         }
-        req.user = { id: decoded.id }; // Assuming your token contains the user's ID
+        req.user = { id: decoded.id };
         next();
     });
 };
+
 // Peer Rating Schema
 const peerRatingSchema = new mongoose.Schema(
     {
@@ -130,9 +129,12 @@ const studyRoomSchema = new mongoose.Schema({
     bookings: [
         {
             student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
+            teamName: String,
+            meetingName: String,
             date: String,
             startTime: String,
             endTime: String,
+            attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Student' }],
         },
     ],
 });
@@ -323,9 +325,11 @@ app.get('/student/me', verifyToken, async (req, res) => {
         }
         res.json(student);
     } catch (err) {
-        res.status(500).json({ message: 'Server error' });
+        console.error('Error fetching student data:', err);
+        res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
 
 // Route to check if the email exists in the database
 app.post('/check-email', async (req, res) => {
@@ -524,6 +528,7 @@ app.get('/student/teams', verifyToken, async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch teams' });
     }
 });
+
 // Route to fetch a specific student's details
 app.get('/students/:studentId', verifyToken, async (req, res) => {
     const { studentId } = req.params;
@@ -679,12 +684,11 @@ app.get('/study-rooms', verifyToken, async (req, res) => {
     }
 });
 
-// Endpoint to fetch all rooms
 app.post('/book-room', verifyToken, async (req, res) => {
-    const { roomId, date, startTime, endTime, meetingName, attendees } =
-        req.body;
+    const { roomId, date, startTime, endTime, meetingName, attendees, teamName } = req.body;
 
     try {
+        // Find the room by ID
         const room = await studyRoomModel.findById(roomId);
         if (!room) {
             return res.status(404).json({ message: 'Study room not found' });
@@ -700,20 +704,22 @@ app.post('/book-room', verifyToken, async (req, res) => {
 
         if (!isAvailable) {
             return res.status(400).json({
-                message:
-                    'This time slot is already taken. Please choose another.',
+                message: 'This time slot is already taken. Please choose another.',
             });
         }
 
-        // Add booking with meeting details and attendees
+        // Add booking to the room's bookings array
         room.bookings.push({
-            student: req.user.id,
-            date,
-            startTime,
-            endTime,
-            meetingName,
-            attendees,
+            student: req.user.id, // The student making the booking
+            teamName, // Team name of the booking
+            meetingName, // Meeting name
+            date, // Booking date
+            startTime, // Start time
+            endTime, // End time
+            attendees, // List of attendees
         });
+
+        // Save the room document
         await room.save();
 
         res.status(200).json({
@@ -900,7 +906,99 @@ app.delete('/profile', verifyToken, async (req, res) => {
         console.error('Error deleting account:', error);
         res.status(500).json({ message: 'Internal Server Error' });
     }
+    
 });
+
+app.get('/student/meetings', verifyToken, async (req, res) => {
+    try {
+        const studentId = req.user.id;
+
+        // Fetch all study rooms and populate bookings
+        const rooms = await studyRoomModel
+            .find()
+            .populate('bookings.student', 'firstName lastName')
+            .populate('bookings.attendees', 'firstName lastName');
+
+        // Filter meetings where the user is the admin or an attendee
+        const userMeetings = rooms.flatMap((room) =>
+            room.bookings.filter(
+                (booking) =>
+                    booking.student._id.toString() === studentId ||
+                    booking.attendees.some((attendee) => attendee._id.toString() === studentId)
+            ).map((booking) => ({
+                _id: booking._id,
+                meetingName: booking.meetingName,
+                teamName: booking.teamName,
+                date: booking.date,
+                startTime: booking.startTime,
+                endTime: booking.endTime,
+                roomName: room.roomName,
+                attendees: booking.attendees.map((attendee) => ({
+                    firstName: attendee.firstName,
+                    lastName: attendee.lastName,
+                })),
+                admin: `${booking.student.firstName} ${booking.student.lastName}`,
+            }))
+        );
+
+        res.status(200).json(userMeetings);
+    } catch (error) {
+        console.error('Error fetching meetings:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Delete meeting from the database
+app.delete('/meetings/:meetingId', verifyToken, async (req, res) => {
+    const { meetingId } = req.params;
+    try {
+        const room = await studyRoomModel.findOne({
+            'bookings._id': meetingId,
+        });
+
+        if (!room) {
+            return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        // Remove the booking from the room
+        room.bookings = room.bookings.filter(
+            (booking) => booking._id.toString() !== meetingId
+        );
+
+        await room.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Meeting deleted successfully',
+        });
+    } catch (error) {
+        console.error('Error deleting meeting:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+app.get('/teams/:teamId', verifyToken, async (req, res) => {
+    try {
+        const { teamId } = req.params;
+
+        // Ensure students are populated with their names
+        const team = await teamModel
+            .findById(teamId)
+            .populate('students', '_id firstName lastName');
+        console.log(team); // Check if students are populated
+
+
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        res.status(200).json({ students: team.students }); // Respond with the populated students
+    } catch (error) {
+        console.error('Error fetching team details:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
 
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;

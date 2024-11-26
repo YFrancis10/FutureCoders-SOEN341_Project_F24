@@ -114,11 +114,6 @@ const BookRoom = () => {
         );
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        navigate('/login');
-    };
-
     const clearForm = () => {
         setMeetingName('');
         setDate('');
@@ -262,7 +257,7 @@ const BookRoom = () => {
                             <button
                                 type="button"
                                 onClick={clearForm}
-                                className="mt-2 text-blue-600 underline text-base font-medium"
+                                className="px-4 py-2 bg-white text-black rounded-md border border-transparent hover:border-black transition duration-300"
                             >
                                 Clear Data
                             </button>
