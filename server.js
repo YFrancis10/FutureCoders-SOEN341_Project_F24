@@ -52,7 +52,7 @@ const studentSchema = new mongoose.Schema({
 
 const studentModel = mongoose.model('Student', studentSchema);
 
-const teacherSchema = new mongoose.Schema({
+const teacherSchema = new mongoose.Schema({ 
     firstName: String,
     lastName: String,
     email: String,
@@ -129,7 +129,7 @@ const studyRoomSchema = new mongoose.Schema({
     capacity: Number,
     bookings: [
         {
-            student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' },
+            student: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', default: ""  },
             date: String,
             startTime: String,
             endTime: String,
