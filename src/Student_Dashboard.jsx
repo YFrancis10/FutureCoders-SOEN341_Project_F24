@@ -121,19 +121,33 @@ function StudentDashboard() {
     };
 
     const handleEditMeeting = (meeting) => {
+        // Find the team by matching the teamName from meetings with the teams list
+        const selectedTeam = teams.find((team) => team.name === meeting.teamName);
+    
+        // Map attendees with their details (if provided)
+        const mappedAttendees = meeting.attendees.map((attendee) => ({
+            _id: attendee._id,
+            firstName: attendee.firstName,
+            lastName: attendee.lastName,
+        }));
+    
         navigate(`/EditMeeting`, {
             state: {
-                meetingName: meeting.meetingName || '',
-                teamName: meeting.teamName || 'Unknown Team', // Pass teamName
-                roomName: meeting.roomName || '',
-                date: meeting.date || '',
-                startTime: meeting.startTime || '',
-                endTime: meeting.endTime || '',
-                attendees: meeting.attendees || [], // Pass attendees
-                meetingId: meeting._id, // Include meeting ID for updates
+                meetingDetails: {
+                    meetingName: meeting.meetingName || '',
+                    roomName: meeting.roomName || '', // Pass roomName
+                    date: meeting.date || '',
+                    startTime: meeting.startTime || '',
+                    endTime: meeting.endTime || '',
+                    attendees: mappedAttendees || [], // Pass attendees
+                    meetingId: meeting._id, // Meeting ID for updates
+                },
+                teamName: meeting.teamName || 'Unknown Team', // Pass team name
+                teamMembers: selectedTeam ? selectedTeam.students : [], // Pass teammates if found
             },
         });
     };
+    
 
     useEffect(() => {
         fetchStudentData();

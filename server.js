@@ -977,28 +977,139 @@ app.delete('/meetings/:meetingId', verifyToken, async (req, res) => {
     }
 });
 
-app.get('/teams/:teamId', verifyToken, async (req, res) => {
+// Update meeting endpoint
+app.put('/meetings/:meetingId', verifyToken, async (req, res) => {
+    const { meetingId } = req.params;
+    const {
+        roomName,
+        date,
+        startTime,
+        endTime,
+        meetingName,
+        attendees,
+        teamName,
+    } = req.body;
+
     try {
-        const { teamId } = req.params;
-
-        // Ensure students are populated with their names
-        const team = await teamModel
-            .findById(teamId)
-            .populate('students', '_id firstName lastName');
-        console.log(team); // Check if students are populated
-
-
-        if (!team) {
-            return res.status(404).json({ message: 'Team not found' });
+        // Step 1: Validate input
+        if (!roomName || !date || !startTime || !endTime || !meetingName || !attendees) {
+            return res.status(400).json({
+                success: false,
+                message: 'All fields are required.',
+            });
         }
 
-        res.status(200).json({ students: team.students }); // Respond with the populated students
+        // Step 2: Find the room with the meeting
+        const existingRoom = await studyRoomModel.findOne({
+            'bookings._id': meetingId,
+        });
+
+        if (!existingRoom) {
+            return res.status(404).json({
+                success: false,
+                message: 'Original meeting not found in any room.',
+            });
+        }
+
+        // Step 3: Check if the meeting is in the same room or a different one
+        if (existingRoom.roomName === roomName) {
+            // Same room: Check for overlapping time slots before saving changes
+            const isConflict = existingRoom.bookings.some(
+                (booking) =>
+                    booking._id.toString() !== meetingId && // Ignore the current meeting
+                    booking.date === date &&
+                    !(
+                        endTime <= booking.startTime || startTime >= booking.endTime // No overlap
+                    )
+            );
+
+            if (isConflict) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This time slot is already taken. Please choose another.',
+                });
+            }
+
+            // Update the existing booking
+            existingRoom.bookings = existingRoom.bookings.map((booking) => {
+                if (booking._id.toString() === meetingId) {
+                    return {
+                        ...booking,
+                        meetingName,
+                        date,
+                        startTime,
+                        endTime,
+                        attendees,
+                        teamName,
+                    };
+                }
+                return booking;
+            });
+
+            await existingRoom.save();
+            return res.status(200).json({
+                success: true,
+                message: 'Meeting has been updated successfully!',
+            });
+        } else {
+            // Different room: Find the new room
+            const newRoom = await studyRoomModel.findOne({ roomName });
+            if (!newRoom) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'The selected room does not exist.',
+                });
+            }
+
+            // Check for overlapping time slots in the new room
+            const isConflict = newRoom.bookings.some(
+                (booking) =>
+                    booking.date === date &&
+                    !(
+                        endTime <= booking.startTime || startTime >= booking.endTime // No overlap
+                    )
+            );
+
+            if (isConflict) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This time slot is already taken in the selected room.',
+                });
+            }
+
+            // Remove the booking from the original room
+            existingRoom.bookings = existingRoom.bookings.filter(
+                (booking) => booking._id.toString() !== meetingId
+            );
+            await existingRoom.save();
+
+            // Add the booking to the new room
+            newRoom.bookings.push({
+                _id: meetingId, // Maintain the same meeting ID
+                meetingName,
+                date,
+                startTime,
+                endTime,
+                attendees,
+                teamName,
+                student: req.user.id, // The admin of the meeting
+            });
+
+            await newRoom.save();
+
+            return res.status(200).json({
+                success: true,
+                message: 'Meeting has been updated and moved to the new room successfully!',
+            });
+        }
     } catch (error) {
-        console.error('Error fetching team details:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+        console.error('Error updating meeting:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Internal Server Error',
+        });
     }
 });
-
 
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;

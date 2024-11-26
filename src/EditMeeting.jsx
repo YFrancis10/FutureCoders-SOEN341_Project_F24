@@ -10,6 +10,7 @@ const EditMeeting = () => {
     const meetingDetails = location.state?.meetingDetails || {};
     const teamName = location.state?.teamName || 'Unknown Team'; // Fallback to 'Unknown Team' if undefined
 
+    const [meetingId, setMeetingId] = useState(null); // Local state for meeting ID
     const [meetingName, setMeetingName] = useState(meetingDetails.meetingName || '');
     const [rooms, setRooms] = useState([]); // To store the list of rooms
     const [selectedRoom, setSelectedRoom] = useState('-- select room --'); // For the dropdown selection
@@ -23,8 +24,35 @@ const EditMeeting = () => {
     useEffect(() => {
         if (!meetingDetails) {
             navigate('/Student_Dashboard');
+            return;
         }
-    }, [meetingDetails, navigate]);
+
+        // Pre-set team members
+        if (location.state?.teamMembers) {
+            setTeamMembers(location.state.teamMembers);
+        }
+
+        // Pre-set selected room
+        if (meetingDetails.roomName) {
+            setSelectedRoom(meetingDetails.roomName);
+        }
+
+        // Store meeting ID locally
+        if (location.state?.meetingDetails?.meetingId) {
+            setMeetingId(location.state.meetingDetails.meetingId); // Save the meeting ID
+        }
+
+        // Pre-set attendees to match team members by IDs
+        if (meetingDetails.attendees && location.state?.teamMembers) {
+            const attendeeIds = meetingDetails.attendees.map((attendee) => attendee._id); // Extract attendee IDs
+            const validAttendeeIds = location.state.teamMembers
+                .filter((member) => attendeeIds.includes(member._id))
+                .map((member) => member._id); // Only include valid IDs from teamMembers
+            setSelectedMembers(validAttendeeIds); // Set valid attendees
+        }
+    }, [meetingDetails, location.state?.teamMembers, location.state?.meetingDetails, navigate]);
+    
+
 
         // Fetch available study rooms
         useEffect(() => {
@@ -40,40 +68,7 @@ const EditMeeting = () => {
                 }
             };
             fetchRooms();
-        }, []);
-        
-
-        useEffect(() => {
-            const fetchTeamMembers = async () => {
-                try {
-                    const token = localStorage.getItem('token');
-                    if (!token) {
-                        console.error('No authentication token found.');
-                        return;
-                    }
-        
-                    const response = await axios.get(
-                        `http://localhost:5001/teams/${meetingDetails.teamId}`,
-                        { headers: { Authorization: `Bearer ${token}` } }
-                    );
-        
-                    if (response.data && response.data.students) {
-                        setTeamMembers(response.data.students); // Save the fetched team members to state
-                    } else {
-                        console.error('No team members found in response.');
-                        setTeamMembers([]); // Ensure it's an empty array if no members are found
-                    }
-                } catch (error) {
-                    console.error('Error fetching team members:', error);
-                    setTeamMembers([]); // Handle error state
-                }
-            };
-        
-            if (meetingDetails.teamId) {
-                fetchTeamMembers();
-            }
-        }, [meetingDetails.teamId]);
-        
+        }, []);     
         
         const handleEditMeeting = async (e) => {
             e.preventDefault();
@@ -87,91 +82,112 @@ const EditMeeting = () => {
                 alert('Please select a room.');
                 return;
             }
-
-        if (selectedMembers.length === 0) {
-            alert('At least one teammate must be selected.');
-            return;
-        }
-
-        const bookingDate = new Date(`${date}T${startTime}`);
-        const currentDate = new Date();
-        const hoursDifference = (bookingDate - currentDate) / (1000 * 60 * 60);
-        if (hoursDifference < 24) {
-            alert('Meetings must be scheduled at least 24 hours in advance.');
-            return;
-        }
-
-        const [startHour, startMinute] = startTime.split(':').map(Number);
-        const [endHour, endMinute] = endTime.split(':').map(Number);
-
-        if (
-            startHour < 8 ||
-            (startHour === 8 && startMinute < 0) ||
-            endHour > 23 ||
-            (endHour === 23 && endMinute > 0)
-        ) {
-            alert('Meetings can only be scheduled between 8:00 AM and 11:00 PM.');
-            return;
-        }
-
-        const start = new Date(`${date}T${startTime}`);
-        const end = new Date(`${date}T${endTime}`);
-        const durationMinutes = (end - start) / (1000 * 60);
-
-        if (durationMinutes > 180) {
-            alert('Meeting duration cannot exceed 3 hours.');
-            return;
-        }
-
-        alert("All verifications passed!");
-
-        /* try {
-            const token = localStorage.getItem('token');
-            const response = await axios.put(
-                `http://localhost:5001/meetings/${meetingDetails._id}`,
-                {
-                    meetingName,
-                    roomId: room,
-                    date,
-                    startTime,
-                    endTime,
-                    attendees: selectedMembers,
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            if (response.data.success) {
-                setMessage('Meeting updated successfully!');
-                navigate('/Student_Dashboard');
+        
+            if (!selectedMembers || selectedMembers.length === 0) {
+                alert('At least one teammate must be selected.');
+                return;
             }
-        } catch (error) {
-            setMessage(
-                error.response?.data.message || 'Error updating meeting. Please try again.'
-            );
-        } */
+        
+            // Fetch room details to verify capacity
+            const selectedRoomDetails = rooms.find((room) => room.roomName === selectedRoom);
+            if (selectedRoomDetails && selectedMembers.length > selectedRoomDetails.capacity) {
+                alert(
+                    `The number of selected attendees (${selectedMembers.length}) exceeds the ${selectedRoom} capacity (${selectedRoomDetails.capacity}).`
+                );
+                return;
+            }
+        
+            const bookingDate = new Date(`${date}T${startTime}`);
+            const currentDate = new Date();
+            const hoursDifference = (bookingDate - currentDate) / (1000 * 60 * 60);
+            if (hoursDifference < 24) {
+                alert('Meetings must be scheduled at least 24 hours in advance.');
+                return;
+            }
+        
+            const [startHour, startMinute] = startTime.split(':').map(Number);
+            const [endHour, endMinute] = endTime.split(':').map(Number);
+        
+            if (
+                startHour < 8 ||
+                (startHour === 8 && startMinute < 0) ||
+                endHour > 23 ||
+                (endHour === 23 && endMinute > 0)
+            ) {
+                alert('Meetings can only be scheduled between 8:00 AM and 11:00 PM.');
+                return;
+            }
+        
+            const start = new Date(`${date}T${startTime}`);
+            const end = new Date(`${date}T${endTime}`);
+            const durationMinutes = (end - start) / (1000 * 60);
+        
+            if (durationMinutes > 180) {
+                alert('Meeting duration cannot exceed 3 hours.');
+                return;
+            }
+        
+            // Prepare the payload for the backend
+    const payload = {
+        roomName: selectedRoom,
+        date,
+        startTime,
+        endTime,
+        meetingName,
+        attendees: selectedMembers,
+        teamName,
     };
 
+    try {
+        const token = localStorage.getItem('token'); // Get token for authentication
+        const response = await axios.put(
+            `http://localhost:5001/meetings/${meetingId}`, // Backend endpoint
+            payload,
+            { headers: { Authorization: `Bearer ${token}` } } // Pass token in headers
+        );
+
+        if (response.data.success) {
+            alert(response.data.message); // Success message from the backend
+            navigate('/Student_Dashboard'); // Redirect to dashboard
+        } else {
+            alert(response.data.message || 'Failed to update meeting.'); // Backend error message
+        }
+    } catch (error) {
+        console.error('Error updating meeting:', error);
+        alert(error.response?.data?.message || 'Failed to update meeting. Please try again.');
+    }
+        };        
+        
+
+    useEffect(() => {
+        // Set team members if passed from state
+        if (location.state?.teamMembers) {
+            setTeamMembers(location.state.teamMembers);
+        }
+    }, [location.state?.teamMembers]);
+    
     const handleMemberSelect = (memberId) => {
         setSelectedMembers((prevSelected) =>
             prevSelected.includes(memberId)
-                ? prevSelected.filter((id) => id !== memberId)
-                : [...prevSelected, memberId]
+                ? prevSelected.filter((id) => id !== memberId) // Remove if already selected
+                : [...prevSelected, memberId] // Add if not selected
         );
     };
-
+    
     const clearForm = () => {
         setMeetingName('');
         setDate('');
         setStartTime('');
         setEndTime('');
+        setSelectedRoom('-- select room --'); // Reset room to default option
         setSelectedMembers([]);
         setMessage(null);
-    };
+    };    
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-gray-200">
             <div className="mt-6 max-w-7xl mx-auto px-4">
-                <h1 className="text-3xl font-bold text-gray-100">Edit {meetingName} for {teamName} team</h1>
+                <h1 className="text-3xl font-bold text-gray-100">Edit {meetingName} meeting for {teamName} team</h1>
             </div>
 
             <main>
@@ -224,7 +240,7 @@ const EditMeeting = () => {
                             <label className="block text-md font-semibold mb-1">Select Room:</label>
                             <select
                                 value={selectedRoom}
-                                onChange={(e) => setSelectedRoom(e.target.value)} // Update correct state
+                                onChange={(e) => setSelectedRoom(e.target.value)}
                                 className="border p-2 rounded w-full text-black"
                                 required
                             >
@@ -232,7 +248,10 @@ const EditMeeting = () => {
                                     -- Select a room --
                                 </option>
                                 {rooms.map((room) => (
-                                    <option key={room._id} value={room._id}>
+                                    <option
+                                        key={room._id}
+                                        value={room.roomName} // Compare using roomName
+                                    >
                                         {room.roomName} - Capacity: {room.capacity}
                                     </option>
                                 ))}
@@ -240,25 +259,26 @@ const EditMeeting = () => {
                         </div>
 
                         <div>
-                        <label className="block text-md font-semibold mb-1">Select Attendees:</label>
-                        <div className="flex flex-col space-y-2">
-                            {teamMembers.length > 0 ? (
-                                teamMembers.map((member) => (
-                                    <label key={member._id} className="flex items-center">
-                                        <input
-                                            type="checkbox"
-                                            value={member._id}
-                                            onChange={() => handleMemberSelect(member._id)}
-                                            className="mr-2"
-                                        />
-                                        {member.firstName} {member.lastName}
-                                    </label>
-                                ))
-                            ) : (
-                                <p>No team members found.</p>
-                            )}
+                            <label className="block text-md font-semibold mb-1">Select Attendees:</label>
+                            <div className="flex flex-col space-y-2">
+                                {teamMembers.length > 0 ? (
+                                    teamMembers.map((member) => (
+                                        <label key={member._id} className="flex items-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedMembers.includes(member._id)} // Compare IDs for pre-check
+                                                onChange={() => handleMemberSelect(member._id)} // Add/remove on toggle
+                                                className="mr-2"
+                                            />
+                                            {member.firstName} {member.lastName}
+                                        </label>
+                                    ))
+                                ) : (
+                                    <p className="text-gray-300">No team members available for selection.</p>
+                                )}
+                            </div>
                         </div>
-                    </div>
+
 
 
                         <div>
