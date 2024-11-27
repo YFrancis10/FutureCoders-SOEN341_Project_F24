@@ -155,6 +155,7 @@ const Email = () => {
                         <div className="mx-5 my-7 py-2">
                             <button
                                 type="submit"
+                                data-testid="steve"
                                 className="bg-black w-full h-[35px] text-white rounded-md border border-transparent hover:border-white transition duration-300"
                             >
                                 Reset Password
@@ -177,6 +178,7 @@ const Email = () => {
                         <p className="text-sm">
                             Remembered your password?{' '}
                             <span
+                                data-testid="log"
                                 className="text-blue-600 cursor-pointer hover:underline"
                                 onClick={() => navigate('/Login')}
                             >
@@ -190,6 +192,7 @@ const Email = () => {
                         <p className="text-sm">
                             Don't have an account?{' '}
                             <span
+                                data-testid="sign"
                                 className="text-blue-600 cursor-pointer hover:underline"
                                 onClick={() => navigate('/Signup')}
                             >

@@ -137,6 +137,7 @@ const TeacherDashboard = () => {
                                             Edit Team
                                         </button>
                                         <button
+                                            data-testid="suppr"
                                             onClick={() => handleDeleteTeam(team.id, team.name)}
                                             className="bg-white text-black px-4 py-2 rounded-md border border-transparent hover:border-black transition duration-300"
                                         >
@@ -156,6 +157,7 @@ const TeacherDashboard = () => {
                     <button
                         onClick={handleCreateTeam}
                         className="px-4 py-2 bg-white text-black rounded-md text-lg hover:bg-green-600 hover:border-black transition duration-300"
+                         data-testid="mess"
                     >
                         + Create a new team
                     </button>

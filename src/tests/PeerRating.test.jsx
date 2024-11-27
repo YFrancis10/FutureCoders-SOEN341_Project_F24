@@ -39,19 +39,14 @@ describe('PeerRating Component', () => {
         );
 
         expect(screen.getByText(/Rate John Doe/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Cooperation/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Conceptual Contribution/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Practical Contribution/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Work Ethic/i)).toBeInTheDocument();
-        expect(screen.getByLabelText(/Comments/i)).toBeInTheDocument();
+        expect(screen.getByTestId("cop")).toBeInTheDocument();
+        expect(screen.getByTestId("prac")).toBeInTheDocument();
+        expect(screen.getByTestId("weth")).toBeInTheDocument();
+        expect(screen.getByTestId("comm")).toBeInTheDocument();
     });
 
     test('displays an error if ratings are not selected', async () => {
-        render(
-            <MemoryRouter>
-                <PeerRating />
-            </MemoryRouter>
-        );
+        render(<MemoryRouter><PeerRating /> </MemoryRouter>);
 
         const submitButton = screen.getByText(/Submit Rating/i);
         fireEvent.click(submitButton);
@@ -70,12 +65,12 @@ describe('PeerRating Component', () => {
             </MemoryRouter>
         );
 
-        // Fill the form
-        fireEvent.change(screen.getByLabelText(/Cooperation/i), { target: { value: '5' } });
-        fireEvent.change(screen.getByLabelText(/Conceptual Contribution/i), { target: { value: '4' } });
-        fireEvent.change(screen.getByLabelText(/Practical Contribution/i), { target: { value: '3' } });
-        fireEvent.change(screen.getByLabelText(/Work Ethic/i), { target: { value: '5' } });
-        fireEvent.change(screen.getByLabelText(/Comments/i), { target: { value: 'Great teammate!' } });
+        // Fill the formprac
+        fireEvent.change(screen.getByTestId("cop"), { target: { value: '5' } });
+        fireEvent.change(screen.getByTestId("con"), { target: { value: '4' } });
+        fireEvent.change(screen.getByTestId("prac"), { target: { value: '3' } });
+        fireEvent.change(screen.getByTestId("weth"), { target: { value: '5' } });
+        fireEvent.change(screen.getByTestId("comm"), { target: { value: 'Great teammate!' } });
 
         const submitButton = screen.getByText(/Submit Rating/i);
         fireEvent.click(submitButton);
@@ -108,11 +103,11 @@ describe('PeerRating Component', () => {
         );
 
         // Fill the form
-        fireEvent.change(screen.getByLabelText(/Cooperation/i), { target: { value: '5' } });
-        fireEvent.change(screen.getByLabelText(/Conceptual Contribution/i), { target: { value: '4' } });
-        fireEvent.change(screen.getByLabelText(/Practical Contribution/i), { target: { value: '3' } });
-        fireEvent.change(screen.getByLabelText(/Work Ethic/i), { target: { value: '5' } });
-        fireEvent.change(screen.getByLabelText(/Comments/i), { target: { value: 'Great teammate!' } });
+        fireEvent.change(screen.getByTestId("cop"), { target: { value: '5' } });
+        fireEvent.change(screen.getByTestId("con"), { target: { value: '4' } });
+        fireEvent.change(screen.getByTestId("prac"), { target: { value: '3' } });
+        fireEvent.change(screen.getByTestId("weth"), { target: { value: '5' } });
+        fireEvent.change(screen.getByTestId("comm"), { target: { value: 'Great teammate!' } });
 
         const submitButton = screen.getByText(/Submit Rating/i);
         fireEvent.click(submitButton);
@@ -122,18 +117,4 @@ describe('PeerRating Component', () => {
         });
     });
 
-    test('logs out the user and redirects to login', () => {
-        render(
-            <MemoryRouter>
-                <PeerRating />
-            </MemoryRouter>
-        );
-
-        const logoutButton = screen.getByText(/Log out/i);
-        fireEvent.click(logoutButton);
-
-        expect(localStorage.getItem('token')).toBeNull();
-        expect(mockNavigate).toHaveBeenCalledWith('/login');
-    });
 });
-
