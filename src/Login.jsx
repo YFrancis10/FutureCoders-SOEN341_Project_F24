@@ -60,6 +60,7 @@ const Login = () => {
                     <form onSubmit={handleLogin} className="my-2">
                         <div className="flex border-b-black border-b-2 mx-5 my-7 py-1">
                             <input
+                                data-testid="couriel"
                                 type="email"
                                 value={email}
                                 placeholder="Email"
@@ -75,6 +76,7 @@ const Login = () => {
                         <div className="flex border-b-black border-b-2 mx-5 my-7 py-1">
                             <input
                                 type="password"
+                                data-testid="pass"
                                 value={password}
                                 placeholder="Password"
                                 onChange={(e) => setPassword(e.target.value)}
@@ -90,6 +92,7 @@ const Login = () => {
                             <p
                                 onClick={() => navigate('/Email')}
                                 className="text-black hover:underline cursor-pointer"
+                                data-testid="courrier"
                             >
                                 Forgot Password?
                             </p>
@@ -100,6 +103,7 @@ const Login = () => {
                             <button
                                 type="submit"
                                 className="bg-black w-full h-[35px] text-white rounded-md border border-transparent hover:border-white transition duration-300"
+                                data-testid="soumettre"
                             >
                                 Log In
                             </button>
@@ -110,6 +114,7 @@ const Login = () => {
                     {message.text && (
                         <div
                             className={`mt-4 text-center ${message.type === 'error' ? 'text-red-600' : 'text-green-600'}`}
+                            data-testid="soumettre"
                         >
                             {message.type === 'error' ? '❌' : '✅'}{' '}
                             {/* Red "X" for error, check mark for success */}
@@ -124,6 +129,7 @@ const Login = () => {
                             <span
                                 className="text-blue-600 cursor-pointer hover:underline"
                                 onClick={() => navigate('/Signup')}
+                                data-testid="hello"
                             >
                                 Sign Up
                             </span>

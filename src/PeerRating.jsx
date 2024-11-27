@@ -412,6 +412,7 @@ const PeerRating = () => {
                                 Cooperation
                             </label>
                             <select
+                             data-testid="cop"
                                 value={cooperation}
                                 onChange={(e) => setCooperation(e.target.value)}
                                 className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-800 text-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -434,6 +435,7 @@ const PeerRating = () => {
                                 Conceptual Contribution
                             </label>
                             <select
+                                 data-testid="con"
                                 value={conceptualContribution}
                                 onChange={(e) =>
                                     setConceptualContribution(e.target.value)
@@ -458,6 +460,7 @@ const PeerRating = () => {
                                 Practical Contribution
                             </label>
                             <select
+                                 data-testid="prac"
                                 value={practicalContribution}
                                 onChange={(e) =>
                                     setPracticalContribution(e.target.value)
@@ -482,6 +485,7 @@ const PeerRating = () => {
                                 Work Ethic
                             </label>
                             <select
+                              data-testid="weth"
                                 value={workEthic}
                                 onChange={(e) => setWorkEthic(e.target.value)}
                                 className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-800 text-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
@@ -504,6 +508,7 @@ const PeerRating = () => {
                                 Comments
                             </label>
                             <textarea
+                                 data-testid="comm"
                                 value={comment}
                                 onChange={(e) => setComment(e.target.value)}
                                 className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-800 text-white shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"

@@ -70,7 +70,7 @@ describe('Log-in Page', () => {
 
   it('Testing forgotten password',async () => {
     render(<Router><Login /></Router>);
-    const huh = screen.getByTestId("ass");
+    const huh = screen.getByTestId("courrier");
     fireEvent.click(huh);
 expect(mockedNavigate).toHaveBeenLastCalledWith('/Email');
   }); 

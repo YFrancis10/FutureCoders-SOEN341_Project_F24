@@ -6,12 +6,12 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom'
 
 jest.mock('axios');
-const mockedNavigate = jest.fn();
 // Mock the navigate function from react-router-dom
+const mockedNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
-  useNavigate: () => mockedNavigate
-}))
+  useNavigate: () => mockedNavigate,
+}));
 
 describe('room list unit test',() => {
     beforeEach(() => {
@@ -33,14 +33,22 @@ const mockRooms = [
 ];
 axios.get.mockResolvedValue({ data: mockRooms });
 
-render(<RoomList />);
-
+render(<Router><RoomList/></Router>); 
 // Wait for the API call to resolve
 await waitFor(() => expect(screen.getByText('Room A')).toBeInTheDocument());//fix with data-testid
 
 expect(screen.getByText('Room A')).toBeInTheDocument();//fix
 expect(screen.getByText('Room B')).toBeInTheDocument();//fix this with data-testid
 });
-it('renders loading state initially', async () =>  {
-}); 
+it('tests return button', async () =>  {
+  const mockRooms = [
+    { _id: '1', roomName: 'Room A', capacity: 10 },
+    { _id: '2', roomName: 'Room B', capacity: 20 },
+  ];
+  axios.get.mockResolvedValue({ data: mockRooms });
+  render(<Router><RoomList/></Router>); 
+  await waitFor(() => expect(screen.getByText('Room A')).toBeInTheDocument());//fix with data-testid
+  fireEvent.click(screen.getByText('Go back to Student Dashboard page'));
+  expect(mockedNavigate).toHaveBeenCalledWith('/Student_Dashboard');
+});
 });
