@@ -106,7 +106,7 @@ const App = () => {
         <Route path="/Cooperation" element={<Layout pageTitle=""><Cooperation /></Layout>} />
         <Route path="/PeerRating/:teamId/:studentId" element={<Layout pageTitle="Peer Rating"><PeerRating /></Layout>} />
         <Route path="/Teams" element={<Layout pageTitle="Teams"><Teams /></Layout>} />
-        <Route path="/summary/:teamId" element={<Layout pageTitle="Summary"><Summary /></Layout>} />
+        <Route path="/summary/:teamId" element={<Layout pageTitle="Summary Results"><Summary /></Layout>} />
         <Route path="/RoomList" element={<Layout pageTitle="Room List"><RoomList /></Layout>} />
         <Route path="/BookRoom/:roomId" element={<Layout pageTitle="Book Room"><BookRoom /></Layout>} />
         <Route path="/teams/:teamId/detailed-results" element={<Layout pageTitle="Detailed Results"><DetailedResults /></Layout>} />

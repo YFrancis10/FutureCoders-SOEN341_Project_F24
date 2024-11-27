@@ -44,26 +44,6 @@ const TeacherDashboard = () => {
         fetchTeacherData();
     }, []);
 
-    /* const toggleCommentsVisibility = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const newVisibility = !commentsVisible;
-
-            await axios.post(
-                'http://localhost:5001/comments-visibility',
-                { visible: newVisibility },
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
-
-            setCommentsVisible(newVisibility); // Update state
-        } catch (error) {
-            console.error('Error toggling comments visibility:', error);
-            alert('Failed to update comments visibility');
-        }
-    };
- */
     const handleCreateTeam = () => {
         navigate('/Teams');
     };
@@ -102,19 +82,6 @@ const TeacherDashboard = () => {
                     </h2>
                     <p className="text-gray-300">Email: {teacher.email}</p>
                     <p className="text-gray-300">Role: {teacher.role}</p>
-
-                    {/* Add Comments Visibility Switch */}
-                    {/* <div className="mt-4">
-                        <label className="text-gray-300">
-                            Enable Anonymous Comments Visibility:
-                        </label>
-                        <input
-                            type="checkbox"
-                            checked={commentsVisible}
-                            onChange={toggleCommentsVisibility}
-                            className="ml-2"
-                        />
-                    </div> */}
                 </section>
 
                 {/* Teams Section */}
@@ -127,28 +94,32 @@ const TeacherDashboard = () => {
                             teams.map((team) => (
                                 <div
                                     key={team.id}
-                                    className="p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 glass"
+                                    className="p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 glass flex flex-col justify-between"
+                                    style={{ minHeight: '250px' }} // Ensure a consistent rectangle height
                                 >
-                                    <h3 className="text-lg font-medium text-gray-100 mb-2">
-                                        {team.name}
-                                    </h3>
-                                    <p className="text-gray-300 mb-3">
-                                        Students:
-                                        {team.students.length > 0 ? (
-                                            <ul className="list-disc list-inside ml-4 text-gray-200">
-                                                {team.students.map((s) => (
-                                                    <li key={s._id}>
-                                                        {s.firstName} {s.lastName}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        ) : (
-                                            <span className="text-gray-500">
-                                                No students in this team.
-                                            </span>
-                                        )}
-                                    </p>
-                                    <div className="flex flex-col gap-2">
+                                    <div>
+                                        <h3 className="text-lg font-medium text-gray-100 mb-2">
+                                            {team.name}
+                                        </h3>
+                                        <p className="text-gray-300 mb-3">
+                                            Students:
+                                            {team.students.length > 0 ? (
+                                                <ul className="list-disc list-inside ml-4 text-gray-200">
+                                                    {team.students.map((s) => (
+                                                        <li key={s._id}>
+                                                            {s.firstName} {s.lastName}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <span className="text-gray-500">
+                                                    No students in this team.
+                                                </span>
+                                            )}
+                                        </p>
+                                    </div>
+                                    {/* Buttons Positioned at the Bottom */}
+                                    <div className="mt-auto flex flex-col gap-2">
                                         <button
                                             onClick={() =>
                                                 navigate(`/summary/${team.id}`, {
@@ -160,9 +131,8 @@ const TeacherDashboard = () => {
                                             Display Team's Results
                                         </button>
                                         <button
-                                            onClick={() =>
-                                                navigate(`/editTeam/${team.id}`)
-                                                } className="rounded-md bg-yellow-500 text-white px-4 py-2 text-sm font-medium"
+                                            onClick={() => navigate(`/editTeam/${team.id}`)}
+                                            className="bg-gray-500 text-white px-4 py-2 rounded-md border border-transparent hover:border-white transition duration-300"
                                         >
                                             Edit Team
                                         </button>
@@ -181,7 +151,7 @@ const TeacherDashboard = () => {
                     </div>
                 </section>
 
-                {/* Create Team and Logout */}
+                {/* Create Team Button */}
                 <div className="mt-6 flex justify-between">
                     <button
                         onClick={handleCreateTeam}
