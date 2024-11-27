@@ -1,36 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import Switch from '@mui/material/Switch';
 
 const TeacherDashboard = () => {
     const [teacher, setTeacher] = useState(null);
     const [teams, setTeams] = useState([]);
-    const [commentsVisible, setCommentsVisible] = useState(false); // State for the switch
+    const [commentsVisible, setCommentsVisible] = useState(false); // Add this state
     const navigate = useNavigate();
 
-    // Fetch teacher details, teams, and the visibility status on page load
     useEffect(() => {
         const fetchTeacherData = async () => {
             try {
                 const token = localStorage.getItem('token');
-                const teacherResponse = await axios.get(
+                const response = await axios.get(
                     'http://localhost:5001/teacher/me',
-                    { headers: { Authorization: `Bearer ${token}` } }
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
                 );
-                setTeacher(teacherResponse.data);
+                setTeacher(response.data);
 
                 const teamsResponse = await axios.get(
                     'http://localhost:5001/teacher/teams',
-                    { headers: { Authorization: `Bearer ${token}` } }
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
                 );
                 setTeams(teamsResponse.data);
 
+                // Fetch initial visibility state from backend
                 const visibilityResponse = await axios.get(
-                    'http://localhost:5001/comments-visibility-status',
-                    { headers: { Authorization: `Bearer ${token}` } }
+                    'http://localhost:5001/comments-visibility',
+                    {
+                        headers: { Authorization: `Bearer ${token}` },
+                    }
                 );
-                setCommentsVisible(visibilityResponse.data.visible); // Set initial state of the switch
+                setCommentsVisible(visibilityResponse.data.visible);
             } catch (error) {
                 console.error('Error fetching teacher data:', error);
             }
@@ -39,14 +44,36 @@ const TeacherDashboard = () => {
         fetchTeacherData();
     }, []);
 
-    // Handle creating a new team
+    /* const toggleCommentsVisibility = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const newVisibility = !commentsVisible;
+
+            await axios.post(
+                'http://localhost:5001/comments-visibility',
+                { visible: newVisibility },
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+
+            setCommentsVisible(newVisibility); // Update state
+        } catch (error) {
+            console.error('Error toggling comments visibility:', error);
+            alert('Failed to update comments visibility');
+        }
+    };
+ */
     const handleCreateTeam = () => {
         navigate('/Teams');
     };
 
-    // Handle deleting a team
     const handleDeleteTeam = async (teamId, teamName) => {
-        if (window.confirm(`Are you sure you want to delete the team "${teamName}"?`)) {
+        if (
+            window.confirm(
+                `Are you sure you want to delete the team "${teamName}"?`
+            )
+        ) {
             try {
                 const token = localStorage.getItem('token');
                 await axios.delete(`http://localhost:5001/teams/${teamId}`, {
@@ -61,48 +88,6 @@ const TeacherDashboard = () => {
         }
     };
 
-    // Handle toggling the comments visibility switch
-
-    const handleToggleDisplayResults = async () => {
-        try {
-            const token = localStorage.getItem('token');
-            const newState = !commentsVisible; // Toggle the visibility
-            await axios.post(
-                'http://localhost:5001/comments-visibility',
-                { visible: newState },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            setCommentsVisible(newState); // Update state locally
-            alert(
-                `Comments visibility has been ${
-                    newState ? 'enabled' : 'disabled'
-                } successfully!`
-            );
-        } catch (error) {
-            console.error('Error toggling comments visibility:', error);
-            alert('Failed to update comments visibility');
-        }
-    };
-    
-    <div className="mt-6 flex justify-between items-center">
-        <button
-            onClick={handleCreateTeam}
-            className="px-4 py-2 bg-white text-black rounded-md text-lg hover:bg-green-600 hover:border-black transition duration-300"
-        >
-            + Create a new team
-        </button>
-    
-        {/* Comments Visibility Switch */}
-        <div className="flex items-center">
-            <span className="text-white mr-4">Enable Comments Visibility</span>
-            <Switch
-                checked={commentsVisible}
-                onChange={handleToggleDisplayResults}
-                color="primary"
-            />
-        </div>
-    </div>;
-
     if (!teacher) {
         return <p className="text-center text-gray-600 mt-10">Loading...</p>;
     }
@@ -110,24 +95,39 @@ const TeacherDashboard = () => {
     return (
         <div className="">
             <main className="max-w-7xl mx-auto px-4 py-6">
-                {/* Teacher Info Section */}
+                {/* Teacher Info */}
                 <section className="p-6 rounded-lg shadow-md mb-6 glass">
                     <h2 className="text-lg font-semibold text-gray-100">
                         Welcome, {teacher.firstName} {teacher.lastName}
                     </h2>
                     <p className="text-gray-300">Email: {teacher.email}</p>
                     <p className="text-gray-300">Role: {teacher.role}</p>
+
+                    {/* Add Comments Visibility Switch */}
+                    {/* <div className="mt-4">
+                        <label className="text-gray-300">
+                            Enable Anonymous Comments Visibility:
+                        </label>
+                        <input
+                            type="checkbox"
+                            checked={commentsVisible}
+                            onChange={toggleCommentsVisibility}
+                            className="ml-2"
+                        />
+                    </div> */}
                 </section>
 
                 {/* Teams Section */}
                 <section>
-                    <h2 className="text-xl font-semibold text-gray-200 mb-4">Your Teams</h2>
+                    <h2 className="text-xl font-semibold text-gray-200 mb-4">
+                        Your Teams
+                    </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {teams.length > 0 ? (
                             teams.map((team) => (
                                 <div
                                     key={team.id}
-                                    className="p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 glass flex flex-col justify-between"
+                                    className="p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200 glass"
                                 >
                                     <h3 className="text-lg font-medium text-gray-100 mb-2">
                                         {team.name}
@@ -148,7 +148,6 @@ const TeacherDashboard = () => {
                                             </span>
                                         )}
                                     </p>
-                                    <div className="flex-grow"></div>
                                     <div className="flex flex-col gap-2">
                                         <button
                                             onClick={() =>
@@ -159,6 +158,13 @@ const TeacherDashboard = () => {
                                             className="bg-black text-white px-4 py-2 rounded-md border border-transparent hover:border-white transition duration-300"
                                         >
                                             Display Team's Results
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                navigate(`/editTeam/${team.id}`)
+                                                } className="rounded-md bg-yellow-500 text-white px-4 py-2 text-sm font-medium"
+                                        >
+                                            Edit Team
                                         </button>
                                         <button
                                             onClick={() => handleDeleteTeam(team.id, team.name)}
@@ -175,7 +181,7 @@ const TeacherDashboard = () => {
                     </div>
                 </section>
 
-                {/* Create Team Button */}
+                {/* Create Team and Logout */}
                 <div className="mt-6 flex justify-between">
                     <button
                         onClick={handleCreateTeam}
@@ -183,29 +189,6 @@ const TeacherDashboard = () => {
                     >
                         + Create a new team
                     </button>
-                </div>
-
-                <br />
-
-                {/* Comments Visibility Switch */}
-                <div className="flex items-center justify-start mt-4 space-x-4">
-                    <p className="text-white">
-                        {commentsVisible
-                            ? 'Results and anonymous comments to the students enabled'
-                            : 'Results and anonymous comments to the students disabled'}
-                    </p>
-                    <Switch
-                        checked={commentsVisible}
-                        onChange={handleToggleDisplayResults}
-                        sx={{
-                            '& .MuiSwitch-thumb': {
-                                backgroundColor: commentsVisible ? 'black' : 'white',
-                            },
-                            '& .MuiSwitch-track': {
-                                backgroundColor: commentsVisible ? 'white' : 'black',
-                            },
-                        }}
-                    />
                 </div>
             </main>
         </div>

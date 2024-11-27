@@ -219,12 +219,12 @@ function StudentDashboard() {
                                         >
                                             Evaluate Team
                                         </button>
-                                        {/* New "Display Your Results" Button */}
-                                        <button
-                                            className="bg-gray-400 text-black px-4 py-2 rounded-md border border-transparent hover:border-white transition duration-300"
+ {/*                                        <button
+                                            onClick={handleSeeComments} // "See Your Comments" button
+                                            className="bg-gray-500 text-white px-4 py-2 rounded-md border border-transparent hover:border-white transition duration-300"
                                         >
-                                            Display Your Results
-                                        </button>
+                                            See Your Comments
+                                        </button> */}
                                         <button
                                             onClick={() =>
                                                 navigate('/RoomList', {
