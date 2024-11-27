@@ -42,7 +42,7 @@ const BookRoom = () => {
 
     const handleBooking = async (e) => {
         e.preventDefault();
-
+        console.log('Form submitted');
         if (selectedMembers.length > roomCapacity) {
             alert(
                 `The selected number of attendees (${selectedMembers.length}) exceeds the room capacity (${roomCapacity}). Please select fewer attendees.`
@@ -201,6 +201,7 @@ const BookRoom = () => {
                                         >
                                             <input
                                                 type="checkbox"
+                                                data-testid="steven"
                                                 value={member._id}
                                                 checked={selectedMembers.includes(
                                                     member._id

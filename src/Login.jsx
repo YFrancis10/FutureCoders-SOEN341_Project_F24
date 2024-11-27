@@ -60,7 +60,7 @@ const Login = () => {
                     <form onSubmit={handleLogin} className="my-2">
                         <div className="flex border-b-black border-b-2 mx-5 my-7 py-1">
                             <input
-                                data-testid="boob"
+                                data-testid="couriel"
                                 type="email"
                                 value={email}
                                 placeholder="Email"
@@ -102,7 +102,7 @@ const Login = () => {
                         <div className="mx-5 my-7 py-2">
                             <button
                                 type="submit"
-                                data-testid="Butt"
+                                data-testid="soumettre"
                                 className="bg-black w-full h-[35px] text-white rounded-md border border-transparent hover:border-white transition duration-300"
                             >
                                 Log In

@@ -257,6 +257,7 @@ function Summary() {
 
                         <div className="mt-6 flex justify-start gap-x-4">
                             <button
+                                data-testid="retour"
                                 onClick={() => navigate('/Teacher_Dashboard')}
                                 className="inline-flex items-center justify-center rounded-md bg-gray-200 text-black px-4 py-3 text-base hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-transform transform hover:scale-105"
                             >
