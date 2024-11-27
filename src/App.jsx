@@ -11,7 +11,6 @@ import Teams from './Teams';
 import Cooperation from './Cooperation';
 import PeerRating from './PeerRating';
 import Summary from './Summary';
-import EditTeam from './editTeam';
 import RoomList from './RoomList'; 
 import BookRoom from './BookRoom'; 
 import DetailedResults from './DetailedResults';
@@ -111,7 +110,6 @@ const App = () => {
         <Route path="/BookRoom/:roomId" element={<Layout pageTitle="Book Room"><BookRoom /></Layout>} />
         <Route path="/teams/:teamId/detailed-results" element={<Layout pageTitle="Detailed Results"><DetailedResults /></Layout>} />
         <Route path="/EditMeeting" element={<Layout pageTitle="Edit Meeting"><EditMeeting /></Layout>} />
-        <Route path="/editTeam/:teamId" element={<Layout pageTitle="Edit Team"><EditTeam /></Layout>} />
         {/* <Route path="/your-comments" element={<Layout pageTitle="Your Comments"><YourComments /></Layout>} /> */}
 
         {/* Profile route */}
