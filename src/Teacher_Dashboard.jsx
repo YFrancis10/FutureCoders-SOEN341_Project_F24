@@ -160,6 +160,13 @@ const TeacherDashboard = () => {
                                             Display Team's Results
                                         </button>
                                         <button
+                                            onClick={() =>
+                                                navigate(`/editTeam/${team.id}`)
+                                                } className="rounded-md bg-yellow-500 text-white px-4 py-2 text-sm font-medium"
+                                        >
+                                            Edit Team
+                                        </button>
+                                        <button
                                             onClick={() => handleDeleteTeam(team.id, team.name)}
                                             className="bg-white text-black px-4 py-2 rounded-md border border-transparent hover:border-black transition duration-300"
                                         >
