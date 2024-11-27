@@ -101,7 +101,7 @@ const EditTeam = () => {
                                     <button
                                         type="button"
                                         onClick={() => handleRemoveStudent(student._id)}
-                                        className="text-red-500 hover:underline text-sm"
+                                        className="text-white hover:underline text-sm"
                                     >
                                         Remove
                                     </button>
@@ -139,7 +139,7 @@ const EditTeam = () => {
                         <button
                             type="button"
                             onClick={handleDiscard}
-                            className="px-6 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg shadow focus:outline-none"
+                            className="px-6 py-2 bg-black hover:border-white hover:border text-white rounded-lg shadow focus:outline-none"
                         >
                             Discard Changes
                         </button>
@@ -147,7 +147,7 @@ const EditTeam = () => {
                         <button
                             type="button"
                             onClick={handleSave}
-                            className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow focus:outline-none"
+                            className="px-6 py-2 bg-white hover:border-black hover:border text-black rounded-lg shadow focus:outline-none"
                         >
                             Save Changes
                         </button>
