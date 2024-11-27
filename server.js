@@ -113,8 +113,8 @@ const peerRatingSchema = new mongoose.Schema(
         conceptualContribution: { type: Number, min: 1, max: 5 },
         practicalContribution: { type: Number, min: 1, max: 5 },
         workEthic: { type: Number, min: 1, max: 5 },
+
         comment: { type: String },
-        displayResult: { type: Boolean, default: false }, // New attribute
     },
     { timestamps: true }
 );
@@ -513,6 +513,53 @@ app.delete('/teams/:teamId', verifyToken, async (req, res) => {
         });
     }
 });
+// Fetch specific team details by ID
+app.get('/teams/:id', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const team = await teamModel
+            .findById(id)
+            .populate('students', 'firstName lastName email'); // Populate student details
+
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        res.json(team);
+    } catch (error) {
+        console.error('Error fetching team data:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+// Update team details by ID
+app.put('/teams/:id', verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, students } = req.body;
+
+        // Find the team
+        const team = await teamModel.findById(id);
+        if (!team) {
+            return res.status(404).json({ message: 'Team not found' });
+        }
+
+        // Verify that the logged-in teacher owns the team
+        if (!team.teacher.equals(req.user.id)) {
+            return res.status(403).json({ message: 'You are not authorized to edit this team' });
+        }
+
+        // Update the team's name and members
+        team.name = name || team.name;
+        team.students = students || team.students;
+
+        // Save the updated team to the database
+        const updatedTeam = await team.save();
+        res.status(200).json(updatedTeam);
+    } catch (error) {
+        console.error('Error updating team:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
 
 app.get('/student/teams', verifyToken, async (req, res) => {
     try {
@@ -588,7 +635,6 @@ app.post('/teams/:teamId/ratings', verifyToken, async (req, res) => {
             practicalContribution,
             workEthic,
             comment,
-            displayResult: false, // Explicitly set to false if needed
         });
 
         await newRating.save();
@@ -1111,37 +1157,6 @@ app.put('/meetings/:meetingId', verifyToken, async (req, res) => {
         });
     }
 });
-
-// Endpoint to toggle comments visibility for a teacher's teams
-app.post('/comments-visibility', verifyToken, async (req, res) => {
-    try {
-        const { visible } = req.body; // true or false
-        const teacherId = req.user.id;
-
-        // Find all teams for the logged-in teacher
-        const teams = await teamModel.find({ teacher: teacherId });
-        const teamIds = teams.map((team) => team._id);
-
-        // Update the displayResult field for all peer ratings in these teams
-        await peerRatingModel.updateMany(
-            { team: { $in: teamIds } },
-            { $set: { displayResult: visible } }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: `Comments visibility set to ${visible}`,
-        });
-    } catch (error) {
-        console.error('Error updating comments visibility:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to update comments visibility',
-        });
-    }
-});
-
-
 
 // Start the server on port 5001
 const PORT = process.env.PORT || 5001;
