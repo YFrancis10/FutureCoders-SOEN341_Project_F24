@@ -274,6 +274,7 @@ const TeacherDashboard = () => {
                                                     Display Team's Results
                                                 </button>
                                                 <button
+                                                    data-testid="suppr"
                                                     onClick={() =>
                                                         handleDeleteTeam(
                                                             team.id,

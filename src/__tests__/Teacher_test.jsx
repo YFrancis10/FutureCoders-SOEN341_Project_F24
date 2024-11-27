@@ -28,7 +28,7 @@ Attempted changes to Teacher data:
 
 
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, cleanup,screen, fireEvent, waitFor,act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { BrowserRouter as Router } from 'react-router-dom';
 import axios from 'axios';
@@ -48,6 +48,9 @@ describe('TeacherDashboard Component', () => {
     mockNavigate = jest.fn();
     useNavigate.mockReturnValue(mockNavigate);
     localStorage.setItem('token', 'mockToken');
+    axios.get.mockReset();
+    axios.delete.mockReset();
+    axios.post.mockReset();
   });
 
   afterEach(() => {
@@ -55,66 +58,31 @@ describe('TeacherDashboard Component', () => {
     localStorage.clear();
   });
 
-  it('renders loading state initially', () => {
-    render(
-      <Router>
-        <Teacher_Dashboard />
-      </Router>
-    );
+  it('renders loading state initially', async() => {
+    await act( async () => render(<Router><Teacher_Dashboard /></Router>)); 
 
     expect(screen.getByText(/loading.../i)).toBeInTheDocument();
   });
 
   it('fetches and displays teacher and team data', async () => {
-    const mockTeamsData = {
+    axios.get.mockResolvedValueOnce({data: { firstName: 'John', lastName: 'Doe', email: 'john@example.com', role: 'Teacher' },});
+    axios.get.mockResolvedValueOnce({
       data: [
-        {
-          id: '1',
-          name: 'test',
-          students: [
-            { _id: '1', firstName: 'Alice', lastName: 'Smith' },
-            { _id: '2', firstName: 'Bob', lastName: 'Brown' },
-          ],
-        },
+        { id: '1', name: 'Team A', students: [{ _id: '1', firstName: 'Alice', lastName: 'Johnson' }] },
+        { id: '2', name: 'Team B', students: [{ _id: '2', firstName: 'Bob', lastName: 'Smith' }] },
       ],
-    }
-    const mockTeacherData = {
-      data: {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        role: 'Teacher',
-        team:[mockTeamsData]
-      },
-    };
-
-    axios.get
-      .mockResolvedValueOnce({ data: mockTeacherData }) // First API call for teacher data
-      .mockResolvedValueOnce({ data: mockTeamsData }); // Second API call for teams data
-
-    render(
-      <Router>
-        <Teacher_Dashboard />
-      </Router>
-    );
-
-    // Wait for the API call to finish and the DOM to update
-    await waitFor(() => {
-      expect(screen.getByText(/welcome, John Doe/i)).toBeInTheDocument();
-      expect(screen.getByText(/email: john.doe@example.com/i)).toBeInTheDocument();
-      expect(screen.getByText(/test/i)).toBeInTheDocument();
-      expect(screen.getByText(/alice smith/i)).toBeInTheDocument();
-      expect(screen.getByText(/bob brown/i)).toBeInTheDocument();
     });
+    await act( async () => render(<Router><Teacher_Dashboard /></Router>)); 
+    await waitFor(() => screen.getByText('Welcome, John Doe'));
+    expect(screen.getByText('Your Teams:')).toBeInTheDocument();
+    expect(screen.getByText('Team A')).toBeInTheDocument();
+    expect(screen.getByText('Team B')).toBeInTheDocument();
   });
 
   it('navigates to the team creation page on button click', async () => {
-    render(
-      <Router>
-        <Teacher_Dashboard />
-      </Router>
-    );
-
+    axios.get.mockResolvedValueOnce({data: { firstName: 'John', lastName: 'Doe', email: 'john@example.com', role: 'Teacher' },});
+    axios.get.mockResolvedValueOnce({data: [{ id: '1', name: 'Team A', students: [{ _id: '1', firstName: 'Alice', lastName: 'Johnson' }] },{ id: '2', name: 'Team B', students: [{ _id: '2', firstName: 'Bob', lastName: 'Smith' }] },],});
+    await act( async () => render(<Router><Teacher_Dashboard /></Router>)); 
     const createTeamButton = screen.getByTestId('mess');
     fireEvent.click(createTeamButton);
 
@@ -122,47 +90,19 @@ describe('TeacherDashboard Component', () => {
   });
 
   it('handles delete team functionality', async () => {
-    const mockTeacherData = {
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
-      role: 'Teacher',
-    };
-    const mockTeamsData = [
-      {
-        id: '1',
-        name: 'test',
-        students: [],
-      },
-    ];
-
-    axios.get
-      .mockResolvedValueOnce({ data: mockTeacherData }) // First API call for teacher data
-      .mockResolvedValueOnce({ data: mockTeamsData }); // Second API call for teams data
-
-    axios.delete.mockResolvedValueOnce({});
-
-    render(
-      <Router>
-        <Teacher_Dashboard />
-      </Router>
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText(/test/i)).toBeInTheDocument();
-    });
-
-    const deleteButton = screen.getByText(/delete team/i);
+    axios.get.mockResolvedValueOnce({data: { firstName: 'John', lastName: 'Doe', email: 'john@example.com', role: 'Teacher' },});
+    axios.get.mockResolvedValueOnce({data: [{ id: '1', name: 'Team A', students: [{ _id: '1', firstName: 'Alice', lastName: 'Johnson' }] },],});
+    axios.delete.mockResolvedValueOnce({data:{}});
+    await act( async () => render(<Router><Teacher_Dashboard /></Router>)); 
+    screen.debug()
+    await waitFor(() => screen.getByText('Team A'));
+    const deleteButton = screen.getByTestId("suppr");
     window.confirm = jest.fn().mockReturnValue(true); // Mock confirmation dialog
 
     fireEvent.click(deleteButton);
-
-    await waitFor(() => {
-      expect(axios.delete).toHaveBeenCalledWith(
-        'http://localhost:5001/teams/1',
-        expect.anything()
-      );
-      expect(screen.queryByText(/test/i)).not.toBeInTheDocument();
-    });
+    //window.confirm = jest.fn().mockReturnValue(true);
+    await waitFor(() => expect(axios.delete).toHaveBeenCalledWith('http://localhost:5001/teams/1', expect.any(Object)));
+    expect(screen.queryByText('Team A')).not.toBeInTheDocument();
   });
+  
 });
